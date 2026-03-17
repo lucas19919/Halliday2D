@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 
 struct Vec2 {
     float x;
@@ -27,4 +28,9 @@ struct Vec2 {
         x += other.x;
         y += other.y;
     }
+
+    float Mag() const;
+    float MagSq() const;
+    Vec2 Norm() const;
+    float Dot(const Vec2& other) const;
 };

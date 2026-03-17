@@ -5,23 +5,31 @@
 #include <vector>
 
 int main() {
-    const int ScreenWidth = 1280;
-    const int ScreenHeight = 960;
+    const int screenWidth = 1280;
+    const int screenHeight = 960;
 
-    InitWindow(ScreenWidth, ScreenHeight, "Engine 1.0");
+    InitWindow(screenWidth, screenHeight, "Engine 1.0");
     SetTargetFPS(60);
 
     World world;
-    RigidBody body(10.0f, Vec2(ScreenWidth/2, 0), Vec2(), Vec2(), Vec2());
+    RigidBody body(10.0f, Vec2(screenWidth/2, 0), Vec2(100.0f, 0.0f), Vec2(), Vec2(), 50.0f, 1.0f);
+    RigidBody body2(10.0f, Vec2(), Vec2(), Vec2(), Vec2(), 50.0f, 1.0f);
+
     world.AddBody(&body);
+    world.AddBody(&body2);
 
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
         world.Step(dt);
+        world.CheckCollisons(screenWidth, screenHeight);
 
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            DrawCircle(body.postion.x, body.postion.y, 100, DARKBLUE);
+
+            for (RigidBody* rb : world.bodies)
+            {
+                DrawCircle(rb->postion.x, rb->postion.y, rb->GetRadius(), DARKBLUE);
+            }
         EndDrawing();
     }
 

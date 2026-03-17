@@ -1,20 +1,22 @@
 #include "physics/RigidBody.h"
 #include "math/Vec2.h"
 
-RigidBody::RigidBody(float setMass, Vec2 position, Vec2 velocity, Vec2 acceleration, Vec2 force)
+RigidBody::RigidBody(float m, Vec2 pos, Vec2 v, Vec2 a, Vec2 F, float r, float e)
 {
-    mass = setMass;
-    invMass = 1 / setMass;
-    postion = position;
-    velocity = velocity;
-    acceleration = acceleration;
-    forceSum = force;
+    mass = m;
+    invMass = 1 / m;
+    postion = pos;
+    velocity = v;
+    acceleration = a;
+    forceSum = F;
+    radius = r;
+    restitution = e;
 }
 
-void RigidBody::SetMass(float setMass)
+void RigidBody::SetMass(float m)
 {
-    mass = setMass;
-    invMass = 1 / setMass;
+    mass = m;
+    invMass = 1 / m;
 }
 
 void RigidBody::ApplyForce(Vec2 force)
@@ -24,5 +26,5 @@ void RigidBody::ApplyForce(Vec2 force)
 
 void RigidBody::ClearForces() 
 {
-    forceSum = Vec2(0.0f, 0.0f);
+    forceSum = Vec2();
 }

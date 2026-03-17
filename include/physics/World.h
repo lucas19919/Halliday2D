@@ -8,9 +8,10 @@ class World
         Vec2 gravity;
 
         World();
+
         void AddBody(RigidBody* body);
         void Step(float dt);
-    private:
+        void CheckCollisons(int screenWidth, int screenHeight);
+
         std::vector<RigidBody*> bodies;
-        
 };
