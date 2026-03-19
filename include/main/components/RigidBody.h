@@ -1,3 +1,4 @@
+#pragma once
 #include "math/Vec2.h"
 
 class GameObject;
@@ -5,7 +6,7 @@ class GameObject;
 class RigidBody 
 {
     public: 
-        RigidBody(float m, Vec2 pos, Vec2 v, Vec2 a, Vec2 F, float r, float e);
+        RigidBody(float m, float e, Vec2 v, Vec2 a, Vec2 F);
         ~RigidBody();
 
         GameObject* parent;
@@ -17,15 +18,17 @@ class RigidBody
         float GetMass() const { return mass; }
         float GetInvMass() const { return invMass; }
 
-        float GetRadius() const { return radius; }
-        float GetRes() const { return restitution; }
+        void SetRestitution(float e) { restitution = e; }
+        float GetRestitution() const { return restitution; }
+
         void ApplyForce(Vec2 force);
+        Vec2 GetForce() const { return netForce; }        
+
         void ClearForces();
-        Vec2 GetForce() const { return forceSum; }
     private:
         float mass;
         float invMass;
-        float radius;
         float restitution;
-        Vec2 forceSum;
+
+        Vec2 netForce;
 };

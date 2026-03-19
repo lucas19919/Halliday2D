@@ -1,10 +1,17 @@
+#pragma once
+#include "main/components/collidertypes/BoxCollider.h"
+#include "main/components/collidertypes/CircleCollider.h"
+#include "main/components/collidertypes/PolygonCollider.h"
+
 class GameObject;
 
-class Collider 
+enum ColliderType { BOX, CIRCLE };
+
+class Collider
 {
     public:
-        Collider();
-        ~Collider();
+        virtual ~Collider() = default;
+        virtual ColliderType getType() const = 0;
 
         GameObject* parent;
-};
+    };

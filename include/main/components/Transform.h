@@ -1,3 +1,4 @@
+#pragma once
 #include "math/Vec2.h"
 
 class GameObject;
@@ -6,7 +7,6 @@ class Transform
 {
     public:
         Transform(GameObject* parentObj);
-        ~Transform();
 
         GameObject* parent;
 

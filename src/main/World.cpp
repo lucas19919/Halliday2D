@@ -10,30 +10,36 @@ World::World()
 
 World::~World()
 {
-    for (GameObject* gameObj : GetGameObjects()) {
-        delete gameObj;
+    for (GameObject* obj : GetGameObjects()) {
+        delete obj;
     }
     GetGameObjects().clear();
 }
 
 void World::Step(float dt)
 {
-    for (RigidBody *rb : bodies)
+    for (GameObject *obj : GetGameObjects())
     {
+        RigidBody *rb = obj->GetRigidBody();
+        Collider *c = obj->GetCollider();
+        if (rb == nullptr) continue;
+
         float iM = rb->GetInvMass();
         float M = rb->GetMass();
 
         rb->ApplyForce(gravity * M);
-        float speedSq = rb->velocity.MagSq();
+
+        /*float speedSq = rb->velocity.MagSq();
         if (speedSq > 0.0001f)
         {
             float drag = airDensity * speedSq * rb->GetRadius();
             rb->ApplyForce(rb->velocity.Norm() * -1.0f * drag);
-        }
+        }*/
        
         rb->acceleration = rb->GetForce() * iM;
         rb->velocity += rb->acceleration * dt;
-        rb->position += rb->velocity * dt;
+
+        obj->transform.position += rb->velocity * dt;
 
         rb->ClearForces();
     }
@@ -41,60 +47,15 @@ void World::Step(float dt)
 
 void World::CheckCollisons(int screenWidth, int screenHeight)
 {
-    for (int i = 0; i < bodies.size(); i++)
+    for (int i = 0; i < GetGameObjects().size(); i++)
     {
-        RigidBody *rb = bodies[i];
-    
-        float radius = rb->GetRadius();
-        if (rb->position.x + radius > screenWidth)
-        {
-            rb->position.x = screenWidth - radius;
-            rb->velocity.x *= -1; 
-        }
+        GameObject* obj = GetGameObjects()[i];
+        RigidBody* rb = obj->GetRigidBody();
+        if (rb == nullptr) continue;
+
+        Collider* c = obj->GetCollider();
+        if (c == nullptr) continue;
+
         
-        if (rb->position.x - radius < 0)
-        {
-            rb->position.x = radius;
-            rb->velocity.x *= -1; 
-        }
-
-        if (rb->position.y + radius > screenHeight)
-        {
-            rb->position.y = screenHeight - radius;
-            rb->velocity.y *= -1; 
-        }
-        
-        if (rb->position.y - radius < 0)
-        {
-            rb->position.y = radius;
-            rb->velocity.y *= -1; 
-        }
-
-        for (int j = i + 1; j < bodies.size(); j++)
-        {
-            RigidBody *rbB = bodies[j];
-
-            Vec2 dir = rbB->position - rb->position;
-            if (dir.MagSq() < (rbB->GetRadius() + rb->GetRadius()) * (rbB->GetRadius() + rb->GetRadius()))
-            {
-                Vec2 dirN = dir.Norm();
-                Vec2 relativeV = rbB->velocity - rb->velocity;
-                float dot = relativeV.Dot(dirN);
-                if (dot > 0) continue;
-
-                float bounce = (rb->GetRes() + rbB->GetRes()) / 2.0f; 
-                float impulse = -1 * (1 + bounce) * dot / (rb->GetInvMass() + rbB->GetInvMass());
-                Vec2 impulseVec = dirN * impulse;
-
-                rb->velocity += impulseVec * rb->GetInvMass() * -1;
-                rbB->velocity += impulseVec * rbB->GetInvMass();
-
-                float overlap = (rb->GetRadius() + rbB->GetRadius()) - dir.Mag();
-                Vec2 correction = dirN * (overlap / (rb->GetInvMass() + rbB->GetInvMass())) * 0.8f; 
-
-                rb->position += correction * rb->GetInvMass() * -1;
-                rbB->position += correction * rbB->GetInvMass();
-            }
-        }
     }
 }

@@ -1,3 +1,4 @@
+#pragma once
 #include "components/Transform.h"
 #include "components/RigidBody.h"
 #include "components/Renderer.h"

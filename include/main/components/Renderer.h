@@ -1,10 +1,15 @@
+#pragma once
+#include "raylib.h"
+
 class gameObject;
 
 class Renderer
 {
     public:
-        Renderer();
-        ~Renderer();
+        Renderer() = default;
+        Renderer(Color c) : color(c) {}
 
         GameObject* parent;
+
+        Color color = RED;
 };

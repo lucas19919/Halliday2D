@@ -7,8 +7,3 @@ Transform::Transform(GameObject* parentObj)
     rotation = 0.0f;
     scale = Vec2(1.0f, 1.0f);
 }
-
-Transform::~Transform()
-{
-    
-}
