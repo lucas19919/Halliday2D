@@ -1,0 +1,16 @@
+#include "math/Vec2.h"
+
+class GameObject;
+
+class Transform
+{
+    public:
+        Transform(GameObject* parentObj);
+        ~Transform();
+
+        GameObject* parent;
+
+        Vec2 position;
+        float rotation;
+        Vec2 scale;
+};

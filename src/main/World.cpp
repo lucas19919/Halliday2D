@@ -1,5 +1,5 @@
-#include "physics/World.h"
-#include "physics/RigidBody.h"
+#include "main/World.h"
+#include "main/GameObject.h"
 #include "math/Vec2.h"
 
 World::World()
@@ -10,15 +10,10 @@ World::World()
 
 World::~World()
 {
-    for (RigidBody* rb : bodies) {
-        delete rb;
+    for (GameObject* gameObj : GetGameObjects()) {
+        delete gameObj;
     }
-    bodies.clear();
-}
-
-void World::AddBody(RigidBody* body)
-{
-    bodies.push_back(body);
+    GetGameObjects().clear();
 }
 
 void World::Step(float dt)

@@ -1,14 +1,17 @@
-#pragma once
 #include "math/Vec2.h"
+
+class GameObject;
 
 class RigidBody 
 {
     public: 
-        Vec2 position;
+        RigidBody(float m, Vec2 pos, Vec2 v, Vec2 a, Vec2 F, float r, float e);
+        ~RigidBody();
+
+        GameObject* parent;
+
         Vec2 velocity;
         Vec2 acceleration;
-
-        RigidBody(float m, Vec2 pos, Vec2 v, Vec2 a, Vec2 F, float r, float e);
 
         void SetMass(float m);
         float GetMass() const { return mass; }
