@@ -1,5 +1,5 @@
 #pragma once
-#include "components/Transform.h"
+#include "components/TransformComponent.h"
 #include "components/RigidBody.h"
 #include "components/Renderer.h"
 #include "components/Collider.h"
@@ -10,7 +10,7 @@ class GameObject
         GameObject();
         ~GameObject();
 
-        Transform transform;
+        TransformComponent transform;
 
         RigidBody* GetRigidBody() { return rigidBody; }
         Renderer* GetRenderer() { return renderer; }

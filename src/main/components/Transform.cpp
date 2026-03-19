@@ -1,6 +1,6 @@
-#include "main/components/Transform.h"
+#include "main/components/TransformComponent.h"
 
-Transform::Transform(GameObject* parentObj)
+TransformComponent::TransformComponent(GameObject* parentObj)
 {
     parent = parentObj;
     position = Vec2();

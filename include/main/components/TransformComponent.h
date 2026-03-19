@@ -3,10 +3,10 @@
 
 class GameObject;
 
-class Transform
+class TransformComponent
 {
     public:
-        Transform(GameObject* parentObj);
+        TransformComponent(GameObject* parentObj);
 
         GameObject* parent;
 

@@ -28,14 +28,7 @@ void World::Step(float dt)
         float M = rb->GetMass();
 
         rb->ApplyForce(gravity * M);
-
-        /*float speedSq = rb->velocity.MagSq();
-        if (speedSq > 0.0001f)
-        {
-            float drag = airDensity * speedSq * rb->GetRadius();
-            rb->ApplyForce(rb->velocity.Norm() * -1.0f * drag);
-        }*/
-       
+        
         rb->acceleration = rb->GetForce() * iM;
         rb->velocity += rb->acceleration * dt;
 
