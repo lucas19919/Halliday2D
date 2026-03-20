@@ -3,7 +3,7 @@
 
 CircleCollider::CircleCollider(float radius) : radius(radius) {}
 
-ColliderType CircleCollider::getType() const
+ColliderType CircleCollider::GetType() const
 {
     return ColliderType::CIRCLE;
 }

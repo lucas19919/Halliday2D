@@ -9,5 +9,5 @@ class CircleCollider : public Collider
     public:
         float radius;    
         CircleCollider(float r);
-        ColliderType getType() const override;
+        ColliderType GetType() const override;
 };

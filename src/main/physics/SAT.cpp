@@ -2,25 +2,33 @@
 #include "main/GameObject.h"
 #include "main/components/Collider.h"
 
-bool SAT::CircleCircle(Collider *c1, Collider *c2)
+Collision SAT::CircleCircle(Collider *c1, Collider *c2)
 {
     float distanceSq = (c1->parent->transform.position - c2->parent->transform.position).MagSq();
     float radiusSum = static_cast<CircleCollider*>(c1)->radius + static_cast<CircleCollider*>(c2)->radius;
 
     if (distanceSq <= radiusSum * radiusSum) {
-        return true;
+        if (distanceSq == 0.0f) {
+            return { true, Vec2(1.0f, 0.0f), radiusSum };
+        }
+        
+        float distance = std::sqrt(distanceSq);
+        Vec2 axis = (c2->parent->transform.position - c1->parent->transform.position).Norm();
+        return { true, axis, radiusSum - distance };
     }
-    else {
-        return false;
-    }
+    
+    return { false, Vec2(), 0.0f };
 }
 
-bool SAT::BoxBox(Collider *b1, Collider *b2)
+Collision SAT::BoxBox(Collider *b1, Collider *b2)
 {
     std::vector<Vec2> vertices1 = GetVertices(static_cast<BoxCollider*>(b1));
     std::vector<Vec2> vertices2 = GetVertices(static_cast<BoxCollider*>(b2));
     std::vector<Vec2> normals1 = GetNormals(vertices1);
     std::vector<Vec2> normals2 = GetNormals(vertices2);
+
+    float minOverlap = INFINITY;
+    Vec2 smallestAxis;
 
     for (Vec2 axis : normals1)
     {
@@ -28,7 +36,13 @@ bool SAT::BoxBox(Collider *b1, Collider *b2)
         Projection p2 = Project(vertices2, axis);
 
         if (p1.max < p2.min || p2.max < p1.min) {
-            return false;
+            return { false, Vec2(), 0.0f };
+        }
+
+        float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
+        if (overlap < minOverlap) {
+            minOverlap = overlap;
+            smallestAxis = axis;
         }
     }
 
@@ -38,32 +52,52 @@ bool SAT::BoxBox(Collider *b1, Collider *b2)
         Projection p2 = Project(vertices2, axis);
 
         if (p1.max < p2.min || p2.max < p1.min) {
-            return false;
+            return { false, Vec2(), 0.0f };
+        }
+
+        float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
+        if (overlap < minOverlap) {
+            minOverlap = overlap;
+            smallestAxis = axis;
         }
     }    
 
-    return true;
+    Vec2 direction = b2->parent->transform.position - b1->parent->transform.position;
+
+    if (smallestAxis.Dot(direction) < 0.0f) {
+        smallestAxis = Vec2(-smallestAxis.x, -smallestAxis.y);
+    }
+
+    return { true, smallestAxis, minOverlap };
 }
 
-bool SAT::BoxCircle(Collider *b1, Collider *c1)
+Collision SAT::BoxCircle(Collider *b1, Collider *c1)
 {
     CircleCollider* circle = static_cast<CircleCollider*>(c1);
     Vec2 center = circle->parent->transform.position;
 
     std::vector<Vec2> vertices = GetVertices(static_cast<BoxCollider*>(b1));
     std::vector<Vec2> normals = GetNormals(vertices);
+    
+    float minOverlap = INFINITY;
+    Vec2 smallestAxis;
 
     Vec2 distAxis = center - vertices[0];
     float dist = (center - vertices[0]).MagSq();
-    for (int i = 1; i < vertices.size(); i++)
+    for (size_t i = 1; i < vertices.size(); i++)
     {
-        if (dist > (center - vertices[i]).MagSq()) {
+        float currentDistSq = (center - vertices[i]).MagSq();
+        if (dist > currentDistSq) {
             distAxis = center - vertices[i];
-            dist = (center - vertices[i]).MagSq();
+            dist = currentDistSq;
         }
     }
 
-    normals.push_back(distAxis.Norm());
+    if (dist > 0.0f) {
+        normals.push_back(distAxis.Norm());
+    } else {
+        normals.push_back(Vec2(1.0f, 0.0f));
+    }
 
     for (Vec2 axis : normals)
     {
@@ -71,28 +105,42 @@ bool SAT::BoxCircle(Collider *b1, Collider *c1)
         Projection p2 = CircleProject(circle, axis);
 
         if (p1.max < p2.min || p2.max < p1.min) {
-            return false;
+            return { false, Vec2(), 0.0f };
+        }
+
+        float overlap = std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
+        if (overlap < minOverlap) {
+            minOverlap = overlap;
+            smallestAxis = axis;
         }
     }           
 
-    return true;
+    Vec2 direction = c1->parent->transform.position - b1->parent->transform.position;
+
+    if (smallestAxis.Dot(direction) < 0.0f) {
+        smallestAxis = Vec2(-smallestAxis.x, -smallestAxis.y);
+    }
+
+    return { true, smallestAxis, minOverlap };
 }
 
-bool SAT::PolygonCircle(Collider *p1, Collider *c1)
+Collision SAT::PolygonCircle(Collider *p1, Collider *c1)
 {
 
+    return { false, Vec2(), 0.0f };
 }
 
-bool SAT::PolygonBox(Collider *p1, Collider *b1)
+Collision SAT::PolygonBox(Collider *p1, Collider *b1)
 {
 
+    return { false, Vec2(), 0.0f };
 }
 
-bool SAT::PolygonPolygon(Collider *p1, Collider *p2)
+Collision SAT::PolygonPolygon(Collider *p1, Collider *p2)
 {
     //make poly collider
 
-    return false;
+    return { false, Vec2(), 0.0f };
     
     /*std::vector<Vec2> vertices1 = GetVertices(static_cast<PolygonCollider*>(p1));
     std::vector<Vec2> vertices2 = GetVertices(static_cast<PolygonCollider*>(p2));

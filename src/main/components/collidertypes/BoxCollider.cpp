@@ -3,7 +3,7 @@
 
 BoxCollider::BoxCollider(Vec2 size) : size(size) {}
 
-ColliderType BoxCollider::getType() const
+ColliderType BoxCollider::GetType() const
 {
     return ColliderType::BOX;
 }

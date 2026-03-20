@@ -1,6 +1,7 @@
 #include "main/World.h"
 #include "main/GameObject.h"
 #include "math/Vec2.h"
+#include "main/physics/CollisionHandler.h"
 
 World::World()
 {
@@ -44,12 +45,55 @@ void World::CheckCollisons(int screenWidth, int screenHeight)
     for (int i = 0; i < GetGameObjects().size(); i++)
     {
         GameObject* obj = GetGameObjects()[i];
-        RigidBody* rb = obj->GetRigidBody();
-        if (rb == nullptr) continue;
-
         Collider* c = obj->GetCollider();
         if (c == nullptr) continue;
 
-        
+        for (int j = i + 1; j < GetGameObjects().size(); j++)
+        {
+            GameObject* other = GetGameObjects()[j];
+            Collider* otherCol = other->GetCollider();
+            if (otherCol == nullptr) continue;
+
+            Collision collision = CollisionHandler::SortCollision(c, otherCol);
+            if (collision.isColliding) {
+                RigidBody* rb = obj->GetRigidBody();
+                RigidBody* otherRb = other->GetRigidBody();
+
+                float invMassA = (rb != nullptr) ? rb->GetInvMass() : 0.0f;
+                float invMassB = (otherRb != nullptr) ? otherRb->GetInvMass() : 0.0f;
+                float totalInvMass = invMassA + invMassB;
+
+                if (totalInvMass == 0.0f) continue;
+
+                Vec2 correction = collision.normal * (collision.depth / totalInvMass);
+                
+                obj->transform.position = obj->transform.position - (correction * invMassA);
+                other->transform.position = other->transform.position + (correction * invMassB);
+
+                if (rb != nullptr && otherRb != nullptr) {
+                    Vec2 relV = otherRb->velocity - rb->velocity;
+                    float relVNormal = relV.Dot(collision.normal);
+
+                    if (relVNormal > 0.0f) continue;
+
+                    float e = std::min(rb->GetRestitution(), otherRb->GetRestitution());
+                    float j = -(1 + e) * relVNormal;
+                    j /= totalInvMass;
+
+                    Vec2 impulse = collision.normal * j;
+                    rb->velocity = rb->velocity - (impulse * invMassA);
+                    otherRb->velocity = otherRb->velocity + (impulse * invMassB);
+                }
+                else
+                {
+                    if (rb != nullptr) {
+                        rb->velocity = rb->velocity - collision.normal * (1 + rb->GetRestitution()) * rb->velocity.Dot(collision.normal);
+                    }
+                    if (otherRb != nullptr) {
+                        otherRb->velocity = otherRb->velocity - (collision.normal * -1.0f) * (1 + otherRb->GetRestitution()) * otherRb->velocity.Dot(collision.normal * -1.0f);
+                    }                    
+                }
+            }
+        }
     }
 }

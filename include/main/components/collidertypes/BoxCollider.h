@@ -9,5 +9,5 @@ class BoxCollider : public Collider
     public:
         Vec2 size;
         BoxCollider(Vec2 s);
-        ColliderType getType() const override;
+        ColliderType GetType() const override;
 };

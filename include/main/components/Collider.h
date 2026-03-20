@@ -11,7 +11,7 @@ class Collider
 {
     public:
         virtual ~Collider() = default;
-        virtual ColliderType getType() const = 0;
+        virtual ColliderType GetType() const = 0;
 
         bool isActive = true;
         void Toggle();
