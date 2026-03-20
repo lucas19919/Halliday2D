@@ -13,6 +13,7 @@ World::~World()
     for (GameObject* obj : GetGameObjects()) {
         delete obj;
     }
+    
     GetGameObjects().clear();
 }
 
