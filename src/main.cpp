@@ -20,10 +20,10 @@ int main() {
         GameObject* leftWall = new GameObject();
         GameObject* rightWall = new GameObject();
 
-        floor->transform.position = Vec2(screenWidth / 2.0f, screenHeight);
-        ceiling->transform.position = Vec2(screenWidth / 2.0f, 0.0f);
-        leftWall->transform.position = Vec2(0.0f, screenHeight / 2.0f);
-        rightWall->transform.position = Vec2(screenWidth, screenHeight / 2.0f);
+        floor->transform.position = Vec2(screenWidth / 2.0f, screenHeight + 25.0f);
+        ceiling->transform.position = Vec2(screenWidth / 2.0f, -25.0f);
+        leftWall->transform.position = Vec2(-25.0f, screenHeight / 2.0f);
+        rightWall->transform.position = Vec2(screenWidth + 25.0f, screenHeight / 2.0f);
 
         BoxCollider* floorCollider = new BoxCollider(Vec2(screenWidth, 50.0f));
         BoxCollider* ceilingCollider = new BoxCollider(Vec2(screenWidth, 50.0f));
@@ -41,36 +41,21 @@ int main() {
         world.AddGameObject(rightWall);
     }
 
+    Properties properties = { 1.0f, 0.5f, 100.0f };
+    LinearState linearState = { Vec2(100.0f, 0.0f), Vec2(), Vec2() };
+    AngularState angularState = { 1.0f, 0.0f, 0.0f };
+
     GameObject* obj = new GameObject();
     obj->transform.position = Vec2(screenWidth / 2, 50.0f);
-    Collider* col = new CircleCollider(15.0f);
+    Collider* col = new BoxCollider(Vec2(30.0f, 50.0f));
     obj->SetCollider(col);
-    Renderer* rend = new Renderer(BLUE);
+    Renderer* rend = new Renderer(BLUE); //set collider pre renderer
     obj->SetRenderer(rend);
-    RigidBody* rb = new RigidBody(1.0f, 0.5f, Vec2(100.0f, 0.0f), Vec2(), Vec2());
+    RigidBody* rb = new RigidBody(properties, linearState, angularState);
     obj->SetRigidBody(rb);
 
-    GameObject* obj2 = new GameObject();
-    obj2->transform.position = Vec2(screenWidth / 2 + 100.0f, 50.0f);
-    Collider* col2 = new BoxCollider(Vec2(50.0f, 50.0f));
-    obj2->SetCollider(col2);
-    Renderer* rend2 = new Renderer(RED);
-    obj2->SetRenderer(rend2);
-    RigidBody* rb2 = new RigidBody(1.0f, 0.5f, Vec2(-100.0f, 0.0f), Vec2(), Vec2());
-    obj2->SetRigidBody(rb2);
-
-    GameObject* obj3 = new GameObject();
-    obj3->transform.position = Vec2(screenWidth / 2 + 200.0f, 50.0f);
-    Collider* col3 = new BoxCollider(Vec2(50.0f, 50.0f));
-    obj3->SetCollider(col3);
-    Renderer* rend3 = new Renderer(GREEN);
-    obj3->SetRenderer(rend3);
-    RigidBody* rb3 = new RigidBody(1.0f, 0.5f, Vec2(0.0f, 0.0f), Vec2(), Vec2());
-    obj3->SetRigidBody(rb3);
-
     world.AddGameObject(obj);
-    world.AddGameObject(obj2);
-    world.AddGameObject(obj3);
+
 
     InitWindow(screenWidth, screenHeight, "Engine 1.0");
     SetTargetFPS(60);    
@@ -80,17 +65,24 @@ int main() {
         world.Step(dt);
         world.CheckCollisons(screenWidth, screenHeight);
 
-        BeginDrawing();
-            ClearBackground(RAYWHITE);
-            CircleCollider* c = static_cast<CircleCollider*>(obj->GetCollider());
-            DrawCircle(obj->transform.position.x, obj->transform.position.y, c->radius, obj->GetRenderer()->color);
+BeginDrawing();
+    ClearBackground(RAYWHITE);
 
-            BoxCollider* b = static_cast<BoxCollider*>(obj2->GetCollider());
-            DrawRectangle(obj2->transform.position.x - b->size.x / 2, obj2->transform.position.y - b->size.y / 2, b->size.x, b->size.y, obj2->GetRenderer()->color);
+    BoxCollider* b = static_cast<BoxCollider*>(obj->GetCollider());
+    
+    Rectangle rec = { 
+        obj->transform.position.x, 
+        obj->transform.position.y, 
+        b->size.x, 
+        b->size.y 
+    };
+    
+    Vector2 origin = { b->size.x / 2.0f, b->size.y / 2.0f };
+    float rotDegrees = obj->transform.rotation * RAD2DEG;
+    
+    DrawRectanglePro(rec, origin, rotDegrees, BLUE);
 
-            BoxCollider* b2 = static_cast<BoxCollider*>(obj3->GetCollider());
-            DrawRectangle(obj3->transform.position.x - b2->size.x / 2, obj3->transform.position.y - b2->size.y / 2, b2->size.x, b2->size.y, obj3->GetRenderer()->color);
-        EndDrawing();
+EndDrawing();
 
         DrawFPS(10, 10);
     }

@@ -1,16 +1,23 @@
 #include "main/components/RigidBody.h"
 #include "math/Vec2.h"
 
-RigidBody::RigidBody(float m, float e, Vec2 v, Vec2 a, Vec2 F)
+RigidBody::RigidBody(Properties properties, LinearState linearState, AngularState angularState)
 {
-    mass = m;
-    invMass = 1 / m;
-    restitution = e;
+    mass = properties.mass;
+    invMass = 1 / properties.mass;
+    restitution = properties.restitution;
 
-    velocity = v;
-    acceleration = a;
+    velocity = linearState.velocity;
+    acceleration = linearState.acceleration;
+    netForce = linearState.netForce;
 
-    netForce = F;
+    inertia = properties.inertia;
+    invInertia = 1 / properties.inertia;
+
+    angularVelocity = angularState.angularVelocity;
+    angularAcceleration = angularState.angularAcceleration;
+
+    torque = angularState.torque;
 }
 
 RigidBody::~RigidBody()
@@ -32,4 +39,9 @@ void RigidBody::ApplyForce(Vec2 force)
 void RigidBody::ClearForces() 
 {
     netForce = Vec2();
+}
+
+void RigidBody::ClearTorque()
+{
+    torque = 0.0f;
 }

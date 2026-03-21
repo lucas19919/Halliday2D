@@ -28,6 +28,9 @@ void World::Step(float dt)
 
         float iM = rb->GetInvMass();
         float M = rb->GetMass();
+        
+        float I = rb->GetInertia();
+        float iI = rb->GetInvInertia();
 
         rb->ApplyForce(gravity * M);
         
@@ -36,6 +39,12 @@ void World::Step(float dt)
 
         obj->transform.position += rb->velocity * dt;
 
+        rb->angularAcceleration = rb->GetTorque() * iI;
+        rb->angularVelocity += rb->angularAcceleration * dt;
+
+        obj->transform.rotation += rb->angularVelocity * dt;
+
+        rb->ClearTorque();
         rb->ClearForces();
     }
 }
