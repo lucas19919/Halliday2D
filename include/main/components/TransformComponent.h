@@ -12,5 +12,4 @@ class TransformComponent
 
         Vec2 position;
         float rotation;
-        Vec2 scale;
 };

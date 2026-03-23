@@ -207,7 +207,7 @@ std::vector<Vec2> SAT::GetVertices(BoxCollider *b)
     vertices.push_back(transform.position + Vec2(b->size.x / 2, b->size.y / 2)); //top right    
     vertices.push_back(transform.position + Vec2(-b->size.x / 2, b->size.y / 2)); //top left  
 
-    for (Vec2& vertex : vertices)
+    for (Vec2 vertex : vertices)
     {
         float x = vertex.x - transform.position.x;
         float y = vertex.y - transform.position.y;

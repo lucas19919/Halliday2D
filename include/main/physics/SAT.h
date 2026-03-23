@@ -8,6 +8,14 @@ struct Collision {
     bool isColliding;
     Vec2 normal;
     float depth;
+    Vec2 contacts[2];
+    int contactCount;
+};
+
+struct Edge {
+    Vec2 p1;
+    Vec2 p2;
+    Vec2 maxVertex;
 };
 
 class SAT

@@ -8,6 +8,7 @@ struct Properties
     float mass;
     float restitution;
     float inertia;
+    //float friction;
 };
 
 struct LinearState
@@ -27,7 +28,7 @@ struct AngularState
 class RigidBody 
 {
     public: 
-        RigidBody(struct Properties properties, struct LinearState linearState, struct AngularState angularState);
+        RigidBody(Properties properties, LinearState linearState, AngularState angularState);
         ~RigidBody();
 
         GameObject* parent;
@@ -62,6 +63,7 @@ class RigidBody
         float mass;
         float invMass;
         float restitution;
+        //float friction;
 
         Vec2 netForce;
 
