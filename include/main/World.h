@@ -7,7 +7,8 @@ class World
 {
     public:
         World();
-        ~World();
+
+        void Clear();
         
         std::vector<GameObject*> GetGameObjects() const { return gameObjects; }
         void AddGameObject(GameObject* obj) { gameObjects.push_back(obj); }

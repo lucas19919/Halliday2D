@@ -9,7 +9,7 @@ World::World()
     airDensity = 0.001f;
 }
 
-World::~World()
+void World::Clear()
 {
     for (GameObject* obj : GetGameObjects()) {
         delete obj;

@@ -6,7 +6,7 @@ RigidBody::RigidBody(Properties properties, LinearState linearState, AngularStat
     mass = properties.mass;
     invMass = 1 / properties.mass;
     restitution = properties.restitution;
-    //friction = properties.friction;
+    friction = properties.friction;
 
     velocity = linearState.velocity;
     acceleration = linearState.acceleration;

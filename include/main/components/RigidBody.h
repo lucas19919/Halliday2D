@@ -8,7 +8,7 @@ struct Properties
     float mass;
     float restitution;
     float inertia;
-    //float friction;
+    float friction;
 };
 
 struct LinearState
@@ -63,7 +63,7 @@ class RigidBody
         float mass;
         float invMass;
         float restitution;
-        //float friction;
+        float friction;
 
         Vec2 netForce;
 
