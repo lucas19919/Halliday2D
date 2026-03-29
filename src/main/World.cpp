@@ -3,8 +3,6 @@
 #include "math/Vec2.h"
 #include "main/physics/ManifoldHandler.h"
 #include "main/physics/Resolve.h"
-#include <chrono>
-#include <cstdio>
 
 World::World() : spatialHash(35.0f)
 {
@@ -82,8 +80,6 @@ void World::Step(float dt)
 
         rb->ClearTorque();
         rb->ClearForces();
-
-        obj->recalculateVertices = true;
     }
 }
 
@@ -94,11 +90,8 @@ void World::CheckCollisions()
     for (auto& objPtr : GetGameObjects()) {
         GameObject* obj = objPtr.get();
     
-        if (obj->recalculateVertices) {
-            obj->cachedVertices = SAT::GetVertices(obj);
-            obj->cachedNormals = SAT::GetNormals(obj->cachedVertices);
-            obj->recalculateVertices = false;
-        }
+        obj->cachedVertices = SAT::GetVertices(obj);
+        obj->cachedNormals = SAT::GetNormals(obj->cachedVertices);
     }
 
     for (auto& pair : gridMap)

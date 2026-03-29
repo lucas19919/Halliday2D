@@ -13,7 +13,6 @@ class GameObject
 
         Array<20> cachedVertices;
         Array<20> cachedNormals;
-        bool recalculateVertices = true;
 
         TransformComponent transform;
 
