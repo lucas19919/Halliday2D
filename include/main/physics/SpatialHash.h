@@ -4,11 +4,6 @@
 #include "main/GameObject.h"
 #include <vector>
 
-struct BBox {
-    Vec2 min;
-    Vec2 max;
-};
-
 class SpatialHash
 {
 public:

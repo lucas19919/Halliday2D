@@ -25,7 +25,7 @@ CollisionManifold Manifold::GenBoxCircle(GameObject* obj1, GameObject* obj2)
 
     if (!collision.isColliding) return cm;
 
-    Array<20> vertices = GetVertices(obj1);
+    Array<20> vertices = obj1->cachedVertices;
     Vec2 center = obj2->transform.position;
     cm.points = GetPolygonCircleContacts(vertices, center);
 
@@ -40,8 +40,8 @@ CollisionManifold Manifold::GenBoxBox(GameObject* obj1, GameObject* obj2)
 
     if (!collision.isColliding) return cm;
 
-    Array<20> vertices1 = GetVertices(obj1);
-    Array<20> vertices2 = GetVertices(obj2);
+    Array<20> vertices1 = obj1->cachedVertices;
+    Array<20> vertices2 = obj2->cachedVertices;
     cm.points = GetPolygonContacts(vertices1, vertices2, collision.normal);
 
     return cm;
@@ -55,7 +55,7 @@ CollisionManifold Manifold::GenPolyCircle(GameObject* obj1, GameObject* obj2)
 
     if (!collision.isColliding) return cm;
 
-    Array<20> vertices = GetVertices(obj1);
+    Array<20> vertices = obj1->cachedVertices;
     Vec2 center = obj2->transform.position;
     cm.points = GetPolygonCircleContacts(vertices, center);
 
@@ -70,8 +70,8 @@ CollisionManifold Manifold::GenPolyBox(GameObject* obj1, GameObject* obj2)
 
     if (!collision.isColliding) return cm;
 
-    Array<20> vertices1 = GetVertices(obj1);
-    Array<20> vertices2 = GetVertices(obj2);
+    Array<20> vertices1 = obj1->cachedVertices;
+    Array<20> vertices2 = obj2->cachedVertices;
     cm.points = GetPolygonContacts(vertices1, vertices2, collision.normal);
 
     return cm;
@@ -85,8 +85,8 @@ CollisionManifold Manifold::GenPolyPoly(GameObject* obj1, GameObject* obj2)
 
     if (!collision.isColliding) return cm;
 
-    Array<20> vertices1 = GetVertices(obj1);
-    Array<20> vertices2 = GetVertices(obj2);
+    Array<20> vertices1 = obj1->cachedVertices;
+    Array<20> vertices2 = obj2->cachedVertices;
     cm.points = GetPolygonContacts(vertices1, vertices2, collision.normal);
 
     return cm;
@@ -219,50 +219,4 @@ Edge Manifold::GetSupportFace(const Array<20>& vertices, Vec2 normal)
         return { prev, spear, v1 };
     else
         return { spear, next, (next - spear).Norm() };
-}
-
-Array<20> Manifold::GetVertices(GameObject* obj)
-{
-    Vec2 worldPosition = obj->transform.position;
-    float rotation = obj->transform.rotation;
-
-    Array<20> vertices;
-
-    Collider* c = obj->GetCollider();
-    switch (c->GetType())
-    {
-        case ColliderType::CIRCLE:
-            vertices.push_back(Vec2(0,0));
-            break;
-
-        case ColliderType::BOX:
-        {
-            Vec2 size = static_cast<BoxCollider*>(c)->size;
-            float x = size.x / 2.0f;
-            float y = size.y / 2.0f;
-
-            vertices.push_back(Vec2(-x, -y));
-            vertices.push_back(Vec2(x, -y));
-            vertices.push_back(Vec2(x, y));
-            vertices.push_back(Vec2(-x, y));
-            break;            
-        }
-
-        case ColliderType::POLYGON:
-            vertices = static_cast<PolygonCollider*>(c)->vertices;
-            break;            
-
-        default:
-            break;
-    }
-
-    for (size_t i = 0; i < vertices.size(); i++)
-    {
-        Vec2 vertex = vertices[i];
-        float x = vertex.x * std::cos(rotation) - vertex.y * std::sin(rotation);
-        float y = vertex.x * std::sin(rotation) + vertex.y * std::cos(rotation);
-        vertices[i] = Vec2(x + worldPosition.x, y + worldPosition.y);                
-    }
-
-    return vertices;
 }

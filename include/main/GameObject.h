@@ -11,6 +11,10 @@ class GameObject
         GameObject();
         ~GameObject();
 
+        Array<20> cachedVertices;
+        Array<20> cachedNormals;
+        bool recalculateVertices = true;
+
         TransformComponent transform;
 
         RigidBody* GetRigidBody() { return rigidBody.get(); }
@@ -20,14 +24,8 @@ class GameObject
         void SetRigidBody(std::unique_ptr<RigidBody> rb);
         void SetCollider(std::unique_ptr<Collider> c);
         void SetRenderer(std::unique_ptr<Renderer> r);
-
-        int GetID() const { return id; }
-
     private:
         std::unique_ptr<RigidBody> rigidBody;
         std::unique_ptr<Collider> collider;
         std::unique_ptr<Renderer> renderer;
-
-        int id;
-        int i = 1;
 };

@@ -2,8 +2,6 @@
 
 GameObject::GameObject()
 {
-    id = i;
-    i++;
 }
 
 GameObject::~GameObject()

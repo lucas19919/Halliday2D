@@ -27,8 +27,10 @@ class SAT
 
         static Projection Project(const Array<20>& vertices, const Vec2 axis);
         static Array<20> GetVertices(GameObject* obj);
+        static Array<20> GetNormals(const Array<20>& vertices);        
+
+        static bool TestBounds(GameObject* obj1, GameObject* obj2);
 
     private:
         static Projection CircleProject(GameObject* obj, const Vec2 axis);
-        static Array<20> GetNormals(const Array<20>& vertices);        
 };

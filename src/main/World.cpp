@@ -3,8 +3,10 @@
 #include "math/Vec2.h"
 #include "main/physics/ManifoldHandler.h"
 #include "main/physics/Resolve.h"
+#include <chrono>
+#include <cstdio>
 
-World::World() : spatialHash(100.0f)
+World::World() : spatialHash(35.0f)
 {
     gravity = Vec2(0.0f, 600.0f);
 }
@@ -42,12 +44,12 @@ void World::Step(float dt)
         Collider* c = obj->GetCollider();
         RigidBody *rb = obj->GetRigidBody();
 
-        BBox bounds = spatialHash.GetBounding(obj);
+        c->SetBounds(spatialHash.GetBounding(obj));
 
-        int minX = std::floor(bounds.min.x / spatialHash.GetCellSize());
-        int maxX = std::floor(bounds.max.x / spatialHash.GetCellSize());
-        int minY = std::floor(bounds.min.y / spatialHash.GetCellSize());
-        int maxY = std::floor(bounds.max.y / spatialHash.GetCellSize());
+        int minX = std::floor(c->GetBounds().min.x / spatialHash.GetCellSize());
+        int maxX = std::floor(c->GetBounds().max.x / spatialHash.GetCellSize());
+        int minY = std::floor(c->GetBounds().min.y / spatialHash.GetCellSize());
+        int maxY = std::floor(c->GetBounds().max.y / spatialHash.GetCellSize());
 
         for (int x = minX; x <= maxX; x++)
         {
@@ -59,7 +61,6 @@ void World::Step(float dt)
         }
 
         if (rb == nullptr) continue;
-        if (rb->isSleeping) continue;
 
         float iM = rb->GetInvMass();
         float M = rb->GetMass();
@@ -81,6 +82,8 @@ void World::Step(float dt)
 
         rb->ClearTorque();
         rb->ClearForces();
+
+        obj->recalculateVertices = true;
     }
 }
 
@@ -88,10 +91,20 @@ void World::CheckCollisions()
 {
     collisionPairs.clear();
 
+    for (auto& objPtr : GetGameObjects()) {
+        GameObject* obj = objPtr.get();
+    
+        if (obj->recalculateVertices) {
+            obj->cachedVertices = SAT::GetVertices(obj);
+            obj->cachedNormals = SAT::GetNormals(obj->cachedVertices);
+            obj->recalculateVertices = false;
+        }
+    }
+
     for (auto& pair : gridMap)
     {
         std::vector<GameObject*>& cell = pair.second;
-        if (cell.size() < 2) continue;        
+        if (cell.size() < 2) continue;     
 
         for (int i = 0; i < cell.size(); i++)
         {
@@ -118,6 +131,9 @@ void World::CheckCollisions()
         {
             GameObject* obj1 = collisionPair.first;
             GameObject* obj2 = collisionPair.second;
+
+            RigidBody* rb1 = obj1->GetRigidBody();
+            RigidBody* rb2 = obj2->GetRigidBody();
 
             CollisionManifold cm = Resolve::ResolveManifold(obj1, obj2);
             if (cm.Collision.isColliding)

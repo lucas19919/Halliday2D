@@ -3,6 +3,14 @@
 #include "main/components/Collider.h"
 #include <cmath>
 
+bool SAT::TestBounds(GameObject* obj1, GameObject* obj2)
+{
+    BBox bounds1 = obj1->GetCollider()->GetBounds();
+    BBox bounds2 = obj2->GetCollider()->GetBounds();
+
+    return !(bounds1.max.x < bounds2.min.x || bounds2.max.x < bounds1.min.x || bounds1.max.y < bounds2.min.y || bounds2.max.y < bounds1.min.y);
+}
+
 Collision SAT::CircleCircle(GameObject *obj1, GameObject *obj2)
 {
     float distanceSq = (obj1->transform.position - obj2->transform.position).MagSq();
@@ -24,10 +32,10 @@ Collision SAT::CircleCircle(GameObject *obj1, GameObject *obj2)
 
 Collision SAT::BoxBox(GameObject *obj1, GameObject *obj2)
 {
-    Array<20> vertices1 = GetVertices(obj1);
-    Array<20> vertices2 = GetVertices(obj2);
-    Array<20> normals1 = GetNormals(vertices1);
-    Array<20> normals2 = GetNormals(vertices2);
+    Array<20> vertices1 = obj1->cachedVertices;
+    Array<20> vertices2 = obj2->cachedVertices;
+    Array<20> normals1 = obj1->cachedNormals;
+    Array<20> normals2 = obj2->cachedNormals;
 
     float minOverlap = INFINITY;
     Vec2 smallestAxis;
@@ -79,8 +87,8 @@ Collision SAT::BoxCircle(GameObject *obj1, GameObject *obj2)
 {
     Vec2 center = obj2->transform.position;
 
-    Array<20> vertices = GetVertices(obj1);
-    Array<20> normals = GetNormals(vertices);
+    Array<20> vertices = obj1->cachedVertices;
+    Array<20> normals = obj1->cachedNormals;
     
     float minOverlap = INFINITY;
     Vec2 smallestAxis;
@@ -132,8 +140,8 @@ Collision SAT::PolygonCircle(GameObject *obj1, GameObject *obj2)
 {
     Vec2 center = obj2->transform.position;
 
-    Array<20> vertices = GetVertices(obj1);
-    Array<20> normals = GetNormals(vertices);
+    Array<20> vertices = obj1->cachedVertices;
+    Array<20> normals = obj1->cachedNormals;
     
     float minOverlap = INFINITY;
     Vec2 smallestAxis;
@@ -183,10 +191,10 @@ Collision SAT::PolygonCircle(GameObject *obj1, GameObject *obj2)
 
 Collision SAT::PolygonBox(GameObject *obj1, GameObject *obj2)
 {
-    Array<20> vertices1 = GetVertices(obj1);
-    Array<20> vertices2 = GetVertices(obj2);
-    Array<20> normals1 = GetNormals(vertices1);
-    Array<20> normals2 = GetNormals(vertices2);
+    Array<20> vertices1 = obj1->cachedVertices;
+    Array<20> vertices2 = obj2->cachedVertices;
+    Array<20> normals1 = obj1->cachedNormals;
+    Array<20> normals2 = obj2->cachedNormals;
 
     float minOverlap = INFINITY;
     Vec2 smallestAxis;
@@ -236,10 +244,10 @@ Collision SAT::PolygonBox(GameObject *obj1, GameObject *obj2)
 
 Collision SAT::PolygonPolygon(GameObject *obj1, GameObject *obj2)
 {
-    Array<20> vertices1 = GetVertices(obj1);
-    Array<20> vertices2 = GetVertices(obj2);
-    Array<20> normals1 = GetNormals(vertices1);
-    Array<20> normals2 = GetNormals(vertices2);
+    Array<20> vertices1 = obj1->cachedVertices;
+    Array<20> vertices2 = obj2->cachedVertices;
+    Array<20> normals1 = obj1->cachedNormals;
+    Array<20> normals2 = obj2->cachedNormals;
 
     float minOverlap = INFINITY;
     Vec2 smallestAxis;
