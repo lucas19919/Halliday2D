@@ -7,29 +7,36 @@
 #include <set>
 #include "main/physics/SpatialHash.h"
 
+struct PairHash {
+    size_t operator()(const std::pair<GameObject*, GameObject*>& p) const 
+    {
+        return reinterpret_cast<size_t>(p.first) ^ (reinterpret_cast<size_t>(p.second) << 1);
+    }
+};
+
 class World
 {
-public:
-    World();
+    public:
+        World();
 
-    void Clear();       
-    void Step(float dt);
+        void Clear();       
+        void Step(float dt);
 
-    void AddGameObject(std::unique_ptr<GameObject> obj) { GetGameObjects().push_back(std::move(obj)); }
-    std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return gameObjects; }
- 
-    Vec2 gravity;
-    bool isPaused = true;
+        void AddGameObject(std::unique_ptr<GameObject> obj) { GetGameObjects().push_back(std::move(obj)); }
+        std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return gameObjects; }
+    
+        Vec2 gravity;
+        bool isPaused = true;
 
-private:
-    void Integrate(float dt);
-    void UpdateGrid();
-    void GenerateCollisionPairs();
-    void ResolveCollisions();
+    private:
+        void Integrate(float dt);
+        void UpdateGrid();
+        void GenerateCollisionPairs();
+        void ResolveCollisions();
 
-    std::vector<std::unique_ptr<GameObject>> gameObjects;
+        SpatialHash spatialHash;
+        std::unordered_map<unsigned int, std::vector<GameObject*>> gridMap;
+        std::vector<std::pair<GameObject*, GameObject*>> collisionPairs;
 
-    SpatialHash spatialHash;
-    std::unordered_map<unsigned int, std::vector<GameObject*>> gridMap;
-    std::vector<std::pair<GameObject*, GameObject*>> collisionPairs;
+        std::vector<std::unique_ptr<GameObject>> gameObjects;
 };

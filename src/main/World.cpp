@@ -3,7 +3,7 @@
 #include "math/Vec2.h"
 #include "main/physics/ManifoldHandler.h"
 #include "main/physics/Resolve.h"
-#include <cstdio>
+#include <unordered_set>
 
 World::World() : spatialHash(35.0f)
 {
@@ -24,21 +24,19 @@ void World::Step(float dt)
     Integrate(dt);
     UpdateGrid();
     GenerateCollisionPairs();
-    ResolveCollisions();    
+    ResolveCollisions();
 }
 
 void World::Integrate(float dt)
 {
-    int isAsleep = 0;
     for (const auto& objPtr : gameObjects)
     {
         GameObject* obj = objPtr.get();
         RigidBody* rb = obj->GetRigidBody();
 
-        if (rb == nullptr) continue;
-        if (rb->isSleeping) isAsleep++;
-
+        if (!rb) continue;
         rb->UpdateSleep(dt);
+
         if (rb->isSleeping) continue;
 
         float iM = rb->GetInvMass();
@@ -60,13 +58,14 @@ void World::Integrate(float dt)
         rb->ClearTorque();
         rb->ClearForces();
     }
-
-    printf("Sleeping: %d / %d\n", isAsleep, (int)gameObjects.size());
 }
 
 void World::UpdateGrid()
 {
-    gridMap.clear();
+    for (auto& pair : gridMap)  
+    {
+        pair.second.clear();
+    }
 
     for (const auto& objPtr : gameObjects)
     {
@@ -100,6 +99,9 @@ void World::UpdateGrid()
 void World::GenerateCollisionPairs()
 {
     collisionPairs.clear();
+    collisionPairs.reserve(gameObjects.size() * 2);
+    
+    std::unordered_set<std::pair<GameObject*, GameObject*>, PairHash> seen;
 
     for (auto& pair : gridMap)
     {
@@ -114,14 +116,16 @@ void World::GenerateCollisionPairs()
                 GameObject* obj2 = cell[j];
 
                 if (obj1 > obj2) std::swap(obj1, obj2);
-                
-                collisionPairs.push_back({obj1, obj2}); 
+
+                size_t pairHash = (reinterpret_cast<size_t>(obj1) << 32) | (reinterpret_cast<size_t>(obj2) & 0xFFFFFFFF);
+
+                if (seen.insert({obj1, obj2}).second) 
+                {
+                    collisionPairs.push_back({obj1, obj2}); 
+                }
             }
         }
     }
-    
-    std::sort(collisionPairs.begin(), collisionPairs.end());
-    collisionPairs.erase(std::unique(collisionPairs.begin(), collisionPairs.end()), collisionPairs.end());
 }
 
 void World::ResolveCollisions()
@@ -134,21 +138,14 @@ void World::ResolveCollisions()
         RigidBody* rb1 = obj1->GetRigidBody();
         RigidBody* rb2 = obj2->GetRigidBody();
 
-        bool isObj1Static = (rb1 == nullptr || rb1->GetMass() == 0.0f);
-        bool isObj2Static = (rb2 == nullptr || rb2->GetMass() == 0.0f);
-
-        if (!isObj1Static && !isObj2Static && rb1->isSleeping && rb2->isSleeping) continue;
-        if (!isObj1Static && isObj2Static && rb1->isSleeping) continue;
-        if (isObj1Static && !isObj2Static && rb2->isSleeping) continue;
-
         CollisionManifold cm = Resolve::ResolveManifold(obj1, obj2);
         if (cm.Collision.isColliding)
         {
             if (rb1 && rb1->isSleeping) rb1->WakeUp();
-            if (rb2 && rb2->isSleeping) rb2->WakeUp();
+            if (rb2&& rb2->isSleeping) rb2->WakeUp();
 
-            Resolve::ResolvePosition(cm, obj1, obj2);
             Resolve::ResolveImpulse(cm, obj1, obj2);
+            Resolve::ResolvePosition(cm, obj1, obj2);
         }                
     }
 }

@@ -51,18 +51,6 @@ void RigidBody::UpdateSleep(float dt)
     }    
 }
 
-void RigidBody::SetVelocity(Vec2 v)
-{
-    velocity = v;
-    if (velocity.MagSq() > sleepEpsilon) WakeUp();
-}
-
-void RigidBody::SetAngularVelocity(float w)
-{
-    angularVelocity = w;
-    if (std::abs(angularVelocity) > sleepEpsilon) WakeUp();
-}
-
 void RigidBody::SetMass(float m)
 {
     mass = m;

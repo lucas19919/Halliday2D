@@ -33,7 +33,7 @@ class RigidBody
 
         bool isSleeping = false;
         float sleepTimer = 0.0f;
-        float sleepEpsilon = 15.0f; 
+        float sleepEpsilon = 1.0f; 
         float timeToSleep = 0.5f;
 
         void WakeUp();
@@ -54,7 +54,7 @@ class RigidBody
         const float& GetFriction() const { return friction; }
 
         const Vec2& GetVelocity() const { return velocity; }
-        void SetVelocity(Vec2 v);
+        void SetVelocity(Vec2 v) { velocity = v; }
 
         const Vec2& GetAcceleration() const { return acceleration; }
         void SetAcceleration(Vec2 a) { acceleration = a; }
@@ -64,7 +64,7 @@ class RigidBody
         void ClearForces();
         
         const float& GetAngularVelocity() const { return angularVelocity; }
-        void SetAngularVelocity(float w);
+        void SetAngularVelocity(float w) { angularVelocity = w; }
 
         const float& GetAngularAcceleration() const { return angularAcceleration; }
         void SetAngularAcceleration(float a) { angularAcceleration = a; }
