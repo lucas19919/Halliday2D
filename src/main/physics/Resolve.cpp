@@ -1,6 +1,8 @@
 #include "main/physics/Resolve.h"
 #include "main/GameObject.h"
 #include "main/physics/SAT.h"
+#include "main/physics/ManifoldHandler.h"
+#include "main/physics/Config.h"
 
 CollisionManifold Resolve::ResolveManifold(GameObject* obj1, GameObject* obj2)
 {
@@ -134,8 +136,8 @@ void Resolve::ResolvePosition(CollisionManifold manifold, GameObject* obj1, Game
 
     Collision collision = manifold.Collision;
 
-    float slop = 0.1f;
-    float percent = 0.6f;
+    float slop = Config().contactSlop;
+    float percent = Config().positionCorrectionPercent;
 
     float penetration = std::max(collision.depth - slop, 0.0f);
     Vec2 correction = collision.normal * (penetration / totalInvMass) * percent;   

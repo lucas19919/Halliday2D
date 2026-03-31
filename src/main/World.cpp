@@ -3,11 +3,12 @@
 #include "math/Vec2.h"
 #include "main/physics/ManifoldHandler.h"
 #include "main/physics/Resolve.h"
+#include "main/physics/Config.h"
 #include <unordered_set>
 
-World::World() : spatialHash(35.0f)
+World::World() : spatialHash(Config().spatialHashCellSize)
 {
-    gravity = Vec2(0.0f, 600.0f);
+    gravity = Config().gravity;
 }
 
 void World::Clear()
@@ -25,7 +26,7 @@ void World::Step(float dt)
     UpdateGrid();
     GenerateCollisionPairs();
 
-    int subTicks = 8;
+    int subTicks = Config().subSteps;
     for (int i = 0; i < subTicks; i++)
     {
         ResolveCollisions();
@@ -110,34 +111,28 @@ void World::UpdateGrid()
 
 void World::GenerateCollisionPairs()
 {
-    collisionPairs.clear();
-    collisionPairs.reserve(gameObjects.size() * 2);
-
-    std::unordered_set<std::pair<GameObject*, GameObject*>, PairHash> seen;
+    std::set<std::pair<GameObject*, GameObject*>> uniquePairs;
 
     for (auto& pair : gridMap)
     {
         std::vector<GameObject*>& cell = pair.second;
         if (cell.size() < 2) continue;     
 
-        for (int i = 0; i < cell.size(); i++)
+        for (size_t i = 0; i < cell.size(); i++)
         {
-            for (int j = i + 1; j < cell.size(); j++)    
+            for (size_t j = i + 1; j < cell.size(); j++)    
             {
                 GameObject* obj1 = cell[i];
                 GameObject* obj2 = cell[j];
 
                 if (obj1 > obj2) std::swap(obj1, obj2);
 
-                size_t pairHash = (reinterpret_cast<size_t>(obj1) << 32) | (reinterpret_cast<size_t>(obj2) & 0xFFFFFFFF);
-
-                if (seen.insert({obj1, obj2}).second) 
-                {
-                    collisionPairs.push_back({obj1, obj2}); 
-                }
+                uniquePairs.insert({obj1, obj2});
             }
         }
     }
+
+    collisionPairs.assign(uniquePairs.begin(), uniquePairs.end());
 }
 
 void World::ResolveCollisions()
@@ -155,7 +150,7 @@ void World::ResolveCollisions()
         {
             if (rb1) rb1->AddContact(cm.Collision.normal);
             if (rb2) rb2->AddContact(Vec2(-cm.Collision.normal.x, -cm.Collision.normal.y));
-            
+
             Vec2 v1 = rb1 ? rb1->GetVelocity() : Vec2(0,0);
             Vec2 v2 = rb2 ? rb2->GetVelocity() : Vec2(0,0);
             float relativeVel = (v2 - v1).Dot(cm.Collision.normal);

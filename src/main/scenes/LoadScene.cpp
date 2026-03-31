@@ -2,6 +2,7 @@
 #include "main/utility/Instantiate.h"
 #include "main/GameObject.h"
 #include "math/Vec2.h"
+#include "main/physics/Config.h"
 #include <fstream>
 #include <string>
 #include <vector>
@@ -52,7 +53,7 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
     {
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> jitter(-4.0f, 4.0f);
+        std::uniform_real_distribution<float> jitter(-Config().generatorJitterRange, Config().generatorJitterRange);
 
         for (const auto& generator : sceneData["generators"])
         {

@@ -4,11 +4,12 @@
 #include "main/scenes/LoadScene.h"
 #include "main/utility/Draw.h"
 #include "main/utility/InputHandler.h"
+#include "main/physics/Config.h"
 #include <string>
 
 int main() {
-    const int screenWidth = 1280;
-    const int screenHeight = 960;
+    const int screenWidth = Config().screenWidth;
+    const int screenHeight = Config().screenHeight;
 
     World world;
     InputHandler input;
@@ -18,7 +19,7 @@ int main() {
     LoadScene::Load(filepath, world, screenWidth, screenHeight);
     
     InitWindow(screenWidth, screenHeight, "Engine 1.0");
-    SetTargetFPS(60);    
+    SetTargetFPS(Config().targetFPS);    
 
     //draw fps?
     bool FPS = true;

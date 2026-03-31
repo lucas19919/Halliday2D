@@ -7,13 +7,6 @@
 #include <set>
 #include "main/physics/SpatialHash.h"
 
-struct PairHash {
-    size_t operator()(const std::pair<GameObject*, GameObject*>& p) const 
-    {
-        return reinterpret_cast<size_t>(p.first) ^ (reinterpret_cast<size_t>(p.second) << 1);
-    }
-};
-
 class World
 {
     public:

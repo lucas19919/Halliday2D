@@ -3,6 +3,7 @@
 #include "main/components/Renderer.h"
 #include "main/components/collidertypes/BoxCollider.h"
 #include "main/components/collidertypes/CircleCollider.h"
+#include "main/physics/Config.h"
 #include <cmath>
 
 void Render(GameObject *obj)
@@ -14,7 +15,7 @@ void Render(GameObject *obj)
     Shape shape = r->GetShape();
 
     //debugging for sleeping states
-    bool debug = false;
+    bool debug = Config().debugSleepingStates;
     if (debug == true)
     {
         if (rb->isSleeping && rb->isSurrounded)
