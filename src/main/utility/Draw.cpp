@@ -10,21 +10,8 @@ void Render(GameObject *obj)
 {
     if (obj->GetRenderer() == nullptr) return;
 
-    RigidBody* rb = obj->GetRigidBody();
     Renderer *r = obj->GetRenderer();
     Shape shape = r->GetShape();
-
-    //debugging for sleeping states
-    bool debug = Config().debugSleepingStates;
-    if (debug == true)
-    {
-        if (rb->isSleeping && rb->isSurrounded)
-            shape.color = BLUE; // both sleeping and surrounded
-        else if (rb->isSurrounded)
-            shape.color = GREEN; // surrunded
-        else if (rb->isSleeping)
-            shape.color = GRAY; //is sleeping
-    }
 
     switch (shape.form)
     {
