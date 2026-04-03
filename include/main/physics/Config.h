@@ -16,11 +16,8 @@ struct Config
     bool warmStart = true;                 
     float restitutionThreshold = 15.0f;
 
-    float contactSlop = 0.15f;        
+    float contactSlop = 0.10f;        
     float positionCorrectionPercent = 0.1f; 
 
     float generatorJitterRange = 4.0f;
-
-    float linearDamping = 0.99f;
-    float angularDamping = 0.98f;
 };

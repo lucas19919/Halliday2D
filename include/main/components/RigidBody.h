@@ -25,11 +25,19 @@ struct AngularState
     float torque;
 };
 
+struct Settings
+{
+    bool gravityEnabled;
+};
+
 class RigidBody 
 {
     public: 
-        RigidBody(Properties properties, LinearState linearState, AngularState angularState);
+        RigidBody(Properties properties, LinearState linearState, AngularState angularState, Settings settings);
         ~RigidBody();
+
+        void SetGravity(bool enabled) { gravityEnabled = enabled; }
+        const bool& IsGravityEnabled() const { return gravityEnabled; }
 
         void SetMass(float m);
         const float& GetMass() const { return mass; }
@@ -80,4 +88,7 @@ class RigidBody
         float angularVelocity;
         float angularAcceleration;  
         float torque;
+
+        //settings
+        bool gravityEnabled;
 };

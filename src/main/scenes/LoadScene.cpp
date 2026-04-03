@@ -196,6 +196,7 @@ void LoadScene::LoadObject(const json& item, World& world)
         Properties props = { 1.0f, 0.5f, 100.0f, 1.0f };
         LinearState linear = { Vec2(), Vec2(), Vec2() };
         AngularState angular = { 0.0f, 0.0f, 0.0f };
+        Settings settings = { true };
 
         props.mass = components["RigidBody"]["properties"]["mass"];
         props.restitution = components["RigidBody"]["properties"]["restitution"];
@@ -213,7 +214,9 @@ void LoadScene::LoadObject(const json& item, World& world)
         angular.angularAcceleration = components["RigidBody"]["angularState"]["angularAcceleration"];
         angular.torque = components["RigidBody"]["angularState"]["torque"];
 
-        builder.WithRigidBody(props, linear, angular);
+        settings.gravityEnabled = components["RigidBody"].value("gravityEnabled", true);
+
+        builder.WithRigidBody(props, linear, angular, settings);
     }
 
     builder.Create(world);

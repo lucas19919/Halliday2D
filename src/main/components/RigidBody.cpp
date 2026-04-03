@@ -2,7 +2,7 @@
 #include "math/Vec2.h"
 #include <algorithm>
 
-RigidBody::RigidBody(Properties properties, LinearState linearState, AngularState angularState)
+RigidBody::RigidBody(Properties properties, LinearState linearState, AngularState angularState, Settings settings)
 {
     mass = properties.mass > 0.0f ? properties.mass : 1.0f;
     inertia = properties.inertia > 0.0f ? properties.inertia : 1.0f;
@@ -19,6 +19,8 @@ RigidBody::RigidBody(Properties properties, LinearState linearState, AngularStat
     angularVelocity = angularState.angularVelocity;
     angularAcceleration = angularState.angularAcceleration;
     torque = angularState.torque;
+
+    gravityEnabled = settings.gravityEnabled;
 }
 
 RigidBody::~RigidBody()

@@ -3,9 +3,9 @@
 #include "main/components/collidertypes/BoxCollider.h"
 #include "main/components/collidertypes/PolygonCollider.h"
 
-Instantiate& Instantiate::WithRigidBody(Properties properties, LinearState linearState, AngularState angularState)
+Instantiate& Instantiate::WithRigidBody(Properties properties, LinearState linearState, AngularState angularState, Settings settings)
 {
-    std::unique_ptr<RigidBody> rb = std::make_unique<RigidBody>(properties, linearState, angularState);
+    std::unique_ptr<RigidBody> rb = std::make_unique<RigidBody>(properties, linearState, angularState, settings);
     obj->SetRigidBody(std::move(rb));
     return *this;
 }

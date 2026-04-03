@@ -72,18 +72,15 @@ void World::IntegrateVelocities(float dt)
         float invInertia = rb->GetInvInertia();
 
         //linear motion
-        rb->ApplyForce(Config().gravity * mass);
+        if (rb->IsGravityEnabled())
+            rb->ApplyForce(Config().gravity * mass);
 
         rb->SetAcceleration(rb->GetForce() * invMass);
         rb->SetVelocity(rb->GetVelocity() + rb->GetAcceleration() * dt);
 
-        rb->SetVelocity(rb->GetVelocity() * Config().linearDamping);
-
         //angular motion
         rb->SetAngularAcceleration(rb->GetTorque() * invInertia);
         rb->SetAngularVelocity(rb->GetAngularVelocity() + rb->GetAngularAcceleration() * dt);
-
-        rb->SetAngularVelocity(rb->GetAngularVelocity() * Config().angularDamping);
 
         rb->ClearForces();
         rb->ClearTorque();

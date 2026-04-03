@@ -9,6 +9,7 @@
         "Collider": { "type": "CIRCLE", "isActive": true, "radius": 80.0 },
         "Renderer": { "form": "R_CIRCLE", "color": "RED", "scale": 80.0 },
         "RigidBody": {
+          "gravityEnabled": true,
           "properties": { "mass": 300.0, "restitution": 1.0, "friction": 0.2, "inertia": 67500.0 },
           "linearState": { "velocity": { "x": 2000.0, "y": 500.0 }, "acceleration": { "x": 0.0, "y": 0.0 }, "netForce": { "x": 0.0, "y": 0.0 } },
           "angularState": { "angularVelocity": 0.0, "angularAcceleration": 0.0, "torque": 0.0 }
@@ -26,6 +27,7 @@
           "Collider": { "type": "BOX", "isActive": true, "size": { "x": 20.0, "y": 20.0 } },
           "Renderer": { "form": "R_BOX", "color": "RED", "scale": { "x": 20.0, "y": 20.0 } },
           "RigidBody": {
+            "gravityEnabled": true,
             "properties": { "mass": 1.0, "restitution": 0.1, "friction": 0.5, "inertia": 66.67 },
             "linearState": { "velocity": { "x": 0.0, "y": 0.0 }, "acceleration": { "x": 0.0, "y": 0.0 }, "netForce": { "x": 0.0, "y": 0.0 } },
             "angularState": { "angularVelocity": 0.0, "angularAcceleration": 0.0, "torque": 0.0 }
@@ -42,6 +44,7 @@
           "Collider": { "type": "CIRCLE", "isActive": true, "radius": 10.0 },
           "Renderer": { "form": "R_CIRCLE", "color": "BLUE", "scale": 10.0 },
           "RigidBody": {
+            "gravityEnabled": true,
             "properties": { "mass": 0.8, "restitution": 0.1, "friction": 0.3, "inertia": 40.0 },
             "linearState": { "velocity": { "x": 0.0, "y": 0.0 }, "acceleration": { "x": 0.0, "y": 0.0 }, "netForce": { "x": 0.0, "y": 0.0 } },
             "angularState": { "angularVelocity": 0.0, "angularAcceleration": 0.0, "torque": 0.0 }
@@ -70,46 +73,8 @@
             ] 
           },
           "RigidBody": {
+            "gravityEnabled": true,
             "properties": { "mass": 2.0, "restitution": 0.05, "friction": 0.6, "inertia": 100.0 },
-            "linearState": { "velocity": { "x": 0.0, "y": 0.0 }, "acceleration": { "x": 0.0, "y": 0.0 }, "netForce": { "x": 0.0, "y": 0.0 } },
-            "angularState": { "angularVelocity": 0.0, "angularAcceleration": 0.0, "torque": 0.0 }
-          }
-        }
-      }
-    },
-    {
-      "comment": "Triangle Formation (Bottom Right)",
-      "grid": { 
-        "rows": 5, 
-        "columns": 5, 
-        "startX": 400.0, 
-        "startY": 300.0, 
-        "spacingX": 80.0, 
-        "spacingY": 80.0 
-      },
-      "object": {
-        "components": {
-          "TransformComponent": { "position": { "x": 0.0, "y": 0.0 }, "rotation": 0.0 },
-          "Collider": { 
-            "type": "POLYGON", 
-            "isActive": true, 
-            "vertices": [
-              { "x": 0.0, "y": -15.0 }, 
-              { "x": 15.0, "y": 15.0 }, 
-              { "x": -15.0, "y": 15.0 }
-            ]
-          },
-          "Renderer": { 
-            "form": "R_POLYGON", 
-            "color": "YELLOW", 
-            "scale": [
-              { "x": 0.0, "y": -15.0 }, 
-              { "x": 15.0, "y": 15.0 }, 
-              { "x": -15.0, "y": 15.0 }
-            ] 
-          },
-          "RigidBody": {
-            "properties": { "mass": 1.5, "restitution": 0.2, "friction": 0.4, "inertia": 80.0 },
             "linearState": { "velocity": { "x": 0.0, "y": 0.0 }, "acceleration": { "x": 0.0, "y": 0.0 }, "netForce": { "x": 0.0, "y": 0.0 } },
             "angularState": { "angularVelocity": 0.0, "angularAcceleration": 0.0, "torque": 0.0 }
           }
