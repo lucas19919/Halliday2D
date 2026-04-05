@@ -309,7 +309,6 @@ SAT::Projection SAT::CircleProject(GameObject* obj, const Vec2 axis)
 SAT::Projection SAT::Project(const Array<20>& vertices, const Vec2 axis)
 {
     Projection project;
-
     project.min = axis.Dot(vertices[0]);
     project.max = project.min;
     

@@ -6,10 +6,6 @@
 
 CollisionManifold Solver::ResolveManifold(GameObject* obj1, GameObject* obj2)
 {
-    if (!SAT::TestBounds(obj1, obj2)) {
-        return CollisionManifold(); 
-    }
-
     return ManifoldHandler::SortManifold(obj1, obj2);
 }
 

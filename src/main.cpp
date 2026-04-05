@@ -15,7 +15,7 @@ int main() {
     InputHandler input;
 
     //all levels under ../assets/( ... ).json
-    const std::string& filepath = "../assets/plinko.json";
+    const std::string& filepath = "../assets/shapes.json";
     LoadScene::Load(filepath, world, screenWidth, screenHeight);
     
     InitWindow(screenWidth, screenHeight, "Engine 1.0");
@@ -24,34 +24,19 @@ int main() {
     //draw fps?
     bool FPS = true;
 
-    int displaySleepCount = 0;
-    float uiTimer = 0.0f;
-    float uiUpdateInterval = 0.3f; 
-
+    const float dt = 1.0f / 60.0f;
     while (!WindowShouldClose()) {
-        float dt = GetFrameTime();
         input.Update(world, filepath, screenWidth, screenHeight);
         world.Step(dt);
 
-        /*uiTimer += dt;
-        if (uiTimer >= uiUpdateInterval) 
-        {
-            displaySleepCount = world.sleepCounter;
-            uiTimer = 0.0f;
-        }*/
-
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            for (const auto& objPtr : world.GetGameObjects()) 
+            for (const auto& objPtr : world.GetGameObjects())
             {
                 Render(objPtr.get());
             }
-
-            if (FPS) 
-                DrawFPS(10, 10);    
-
-            //DrawText("Sleeping Objects: ", 10, 40, 20, DARKGRAY);
-            //DrawText(std::to_string(displaySleepCount).c_str(), 190, 40, 20, DARKGRAY);
+            if (FPS)
+                DrawFPS(10, 10);
         EndDrawing();
     }
 
