@@ -24,23 +24,23 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
     if (sceneData.value("useWalls", false))
     {
         Instantiate()
-            .WithTransform(Vec2(screenWidth / 2.0f, screenHeight + 25.0f), 0.0f)
-            .WithCollider(ColliderType::BOX, Vec2(screenWidth, 50.0f))
+            .WithTransform(Vec2(screenWidth / 2.0f, screenHeight + 100.0f), 0.0f)
+            .WithCollider(ColliderType::BOX, Vec2(screenWidth, 200.0f))
             .Create(world);
 
         Instantiate()
-            .WithTransform(Vec2(screenWidth / 2.0f, -25.0f), 0.0f)
-            .WithCollider(ColliderType::BOX, Vec2(screenWidth, 50.0f))
+            .WithTransform(Vec2(screenWidth / 2.0f, -100.0f), 0.0f)
+            .WithCollider(ColliderType::BOX, Vec2(screenWidth, 200.0f))
             .Create(world);
 
         Instantiate()
-            .WithTransform(Vec2(-25.0f, screenHeight / 2.0f), 0.0f)
-            .WithCollider(ColliderType::BOX, Vec2(50.0f, screenHeight))
+            .WithTransform(Vec2(-100.0f, screenHeight / 2.0f), 0.0f)
+            .WithCollider(ColliderType::BOX, Vec2(200.0f, screenHeight))
             .Create(world);
 
         Instantiate()
-            .WithTransform(Vec2(screenWidth + 25.0f, screenHeight / 2.0f), 0.0f)
-            .WithCollider(ColliderType::BOX, Vec2(50.0f, screenHeight))
+            .WithTransform(Vec2(screenWidth + 100.0f, screenHeight / 2.0f), 0.0f)
+            .WithCollider(ColliderType::BOX, Vec2(200.0f, screenHeight))
             .Create(world);
     }
 
@@ -131,6 +131,7 @@ void LoadScene::LoadObject(const json& item, World& world)
     }
 
     Shape renderShape;
+
     if (components.contains("Renderer"))
     {
         std::string form = components["Renderer"]["form"];

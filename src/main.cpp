@@ -15,7 +15,7 @@ int main() {
     InputHandler input;
 
     //all levels under ../assets/( ... ).json
-    const std::string& filepath = "../assets/shapes.json";
+    const std::string& filepath = "../assets/gentest.json";
     LoadScene::Load(filepath, world, screenWidth, screenHeight);
     
     InitWindow(screenWidth, screenHeight, "Engine 1.0");
@@ -23,6 +23,10 @@ int main() {
 
     //draw fps?
     bool FPS = true;
+
+    int uiTimer = 0;
+    int uiToggleDelay = 60;
+    int sleepingObjects = world.sleepCounter;
 
     const float dt = 1.0f / 60.0f;
     while (!WindowShouldClose()) {
@@ -35,6 +39,15 @@ int main() {
             {
                 Render(objPtr.get());
             }
+            
+            uiTimer++;
+            if (uiTimer >= uiToggleDelay) {
+                sleepingObjects = world.sleepCounter;
+                uiTimer = 0;
+            }
+
+            DrawText(std::to_string(sleepingObjects).c_str(), 10, 50, 30, BLACK);
+
             if (FPS)
                 DrawFPS(10, 10);
         EndDrawing();

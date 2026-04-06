@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <set>
+#include <cstdint>
 #include "main/physics/SpatialHash.h"
 
 struct ContactConstraint
@@ -44,6 +46,7 @@ class World
 
         //abstract stuff like this later ???
         bool isPaused = true;
+        int sleepCounter = 0;
 
     private:
         void PrepareFrame(float dt);
@@ -63,7 +66,9 @@ class World
     private:
         SpatialHash spatialHash;
         std::unordered_map<unsigned int, std::vector<GameObject*>> gridMap;
+
         std::vector<std::pair<GameObject*, GameObject*>> candidatePairs;
+        std::unordered_set<uint64_t> candidatePairKeys;
 
         std::vector<std::unique_ptr<GameObject>> gameObjects;
 

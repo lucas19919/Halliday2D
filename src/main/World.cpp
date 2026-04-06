@@ -50,6 +50,7 @@ void World::PrepareFrame(float dt)
 {
     currentFrameContacts.clear();
     candidatePairs.clear();
+    candidatePairKeys.clear();
 
     for (auto& cell : gridMap)
     {
@@ -66,6 +67,7 @@ void World::IntegrateVelocities(float dt)
         RigidBody* rb = obj->GetRigidBody();   
 
         if (!rb) continue;
+        if (rb->IsSleeping()) continue;
 
         float mass = rb->GetMass();
         float invMass = rb->GetInvMass();
@@ -93,12 +95,16 @@ void World::UpdateBroadphase()
     for (const auto& objPtr : gameObjects)
     {
         GameObject* obj = objPtr.get();
+        RigidBody* rb = obj->GetRigidBody();
         Collider* c = obj->GetCollider();
 
         //update cached vertices/normals and bounds for spatial hash
-        obj->cachedVertices = SAT::GetVertices(obj);
-        obj->cachedNormals = SAT::GetNormals(obj->cachedVertices);
-        c->SetBounds(spatialHash.GetBounding(obj));
+        if (!rb || !rb->IsSleeping())
+        {
+            obj->cachedVertices = SAT::GetVertices(obj);
+            obj->cachedNormals = SAT::GetNormals(obj->cachedVertices);
+            c->SetBounds(spatialHash.GetBounding(obj));
+        }
 
         //determine which cells the object occupies and add to grid map
         int minX = std::floor(c->GetBounds().min.x / spatialHash.GetCellSize());
@@ -134,11 +140,16 @@ void World::GeneratePairs()
                 GameObject* obj1 = cell[i];
                 GameObject* obj2 = cell[j];
 
+                RigidBody* rb1 = obj1->GetRigidBody();
+                RigidBody* rb2 = obj2->GetRigidBody();
+
                 //check if bounds overlap before adding pair
                 if (SAT::TestBounds(obj1, obj2))
                 {
                     if (obj1 > obj2) std::swap(obj1, obj2); 
-                    if (candidatePairs.end() != std::find(candidatePairs.begin(), candidatePairs.end(), std::make_pair(obj1, obj2))) continue;
+
+                    uint64_t key = (uint64_t)(uintptr_t)obj1 ^ ((uint64_t)(uintptr_t)obj2 << 32);
+                    if (!candidatePairKeys.insert(key).second) continue;
 
                     candidatePairs.emplace_back(obj1, obj2);
                 }
@@ -158,7 +169,6 @@ void World::BuildContacts()
         CollisionManifold cm = Solver::ResolveManifold(obj1, obj2);
         
         if (!cm.collision.isColliding) continue;
-
         ContactConstraint contactConstraint{};  
 
         contactConstraint.obj1 = obj1;
@@ -168,8 +178,28 @@ void World::BuildContacts()
         uintptr_t b = reinterpret_cast<uintptr_t>(obj2);
         contactConstraint.key = static_cast<unsigned int>(a * 73856093u ^ b * 19349669u);
         
+
         RigidBody* rb1 = obj1->GetRigidBody();
         RigidBody* rb2 = obj2->GetRigidBody();
+
+        bool rb1Sleeping = rb1 && rb1->IsSleeping();
+        bool rb2Sleeping = rb2 && rb2->IsSleeping();
+
+        if (rb1Sleeping || rb2Sleeping)
+        {
+            Vec2 v1 = rb1 ? rb1->GetVelocity() : Vec2();
+            Vec2 v2 = rb2 ? rb2->GetVelocity() : Vec2();
+            float relVel = std::abs(cm.collision.normal.Dot(v2 - v1));
+
+            if (relVel > Config().velocitySleepThreshold)
+            {
+                // Real impact — wake both
+                if (rb1) rb1->WakeUp();
+                if (rb2) rb2->WakeUp();
+            }
+            else
+                if (rb1Sleeping && rb2Sleeping) continue;
+        }
 
         contactConstraint.rb1 = rb1;
         contactConstraint.rb2 = rb2;
@@ -235,9 +265,6 @@ void World::PrepareContacts()
 {
     for (auto& contact : currentFrameContacts)
     {
-        //update bias
-
-
         unsigned int key = contact.key;
         for (auto& lastContact : lastFrameContacts)
         {
@@ -285,6 +312,7 @@ void World::IntegratePositions(float dt)
         RigidBody* rb = obj->GetRigidBody();   
 
         if (!rb) continue;
+        if (rb->IsSleeping()) continue;
 
         obj->transform.position += rb->GetVelocity() * dt;
         obj->transform.rotation += rb->GetAngularVelocity() * dt;
@@ -301,4 +329,44 @@ void World::FinishFrame(float dt)
 void World::UpdateSleep(float dt)
 {
     //loop through rigidbodies and update sleep states based on energy thresholds and timers
+    sleepCounter = 0;
+    for (const auto& objPtr : gameObjects)
+    {
+        GameObject* obj = objPtr.get();
+        RigidBody* rb = obj->GetRigidBody();
+
+        if (!rb) continue;
+
+        float m = rb->GetMass();
+        float i = rb->GetInertia();
+
+        float vSq = rb->GetVelocity().MagSq();
+        float aV = rb->GetAngularVelocity();
+
+        float kE = 0.5 * ((m * vSq) + (i * aV * aV));
+
+        if (kE <= Config().sleepThreshold)
+        {
+            rb->SetSleepTimer(rb->GetSleepTimer() + dt);
+            if (rb->GetSleepTimer() >= Config().sleepTime)
+            {
+                rb->SetSleeping(true);
+                sleepCounter++;
+            }
+        }
+        else
+        {
+            rb->SetSleepTimer(0.0f);
+            rb->SetSleeping(false);
+        }
+
+        //DEBUG:
+        if (Config().debugSleep)
+        {
+            if (rb->IsSleeping())
+                obj->GetRenderer()->SetColor({ 100, 100, 255, 255 });
+            else
+                obj->GetRenderer()->SetColor({ 255, 100, 100, 255 });
+        }
+    }
 }

@@ -21,6 +21,12 @@ struct Config
     float contactSlop = 0.15f;        
     float positionCorrectionPercent = 0.1f; 
 
+    //sleep
+    float sleepThreshold = 10.0f;
+    float velocitySleepThreshold = 20.0f;
+    float sleepTime = 0.5f;
+    bool debugSleep = false; //different color for sleeping obj
+
     float generatorJitterRange = 4.0f;
 };
 

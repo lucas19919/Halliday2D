@@ -31,6 +31,9 @@ class Renderer
 
         Shape GetShape() const { return shape; }
 
+        //Debug helper
+        void SetColor(Color color) { shape.color = color; }
+
     private:
         Shape shape;
         
