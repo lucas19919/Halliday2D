@@ -61,6 +61,8 @@ class World
         void IntegratePositions(float dt);
 
         void FinishFrame(float dt);
+
+        void BuildIslands();
         void UpdateSleep(float dt);
 
     private:

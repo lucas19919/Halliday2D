@@ -36,14 +36,18 @@ void World::Step(float dt)
 
     PrepareFrame(dt);
     IntegrateVelocities(dt);
+
     UpdateBroadphase();
     GeneratePairs();
+
     BuildContacts();
     PrepareContacts();
     SolveConstraints();
+
     IntegratePositions(dt);
+
+    //UpdateSleep(dt);
     FinishFrame(dt);
-    UpdateSleep(dt);
 }
 
 void World::PrepareFrame(float dt)
@@ -177,13 +181,14 @@ void World::BuildContacts()
         uintptr_t a = reinterpret_cast<uintptr_t>(obj1);
         uintptr_t b = reinterpret_cast<uintptr_t>(obj2);
         contactConstraint.key = static_cast<unsigned int>(a * 73856093u ^ b * 19349669u);
-        
 
         RigidBody* rb1 = obj1->GetRigidBody();
         RigidBody* rb2 = obj2->GetRigidBody();
 
         bool rb1Sleeping = rb1 && rb1->IsSleeping();
         bool rb2Sleeping = rb2 && rb2->IsSleeping();
+
+        if (rb1Sleeping && rb2Sleeping) continue;
 
         if (rb1Sleeping || rb2Sleeping)
         {
@@ -193,12 +198,13 @@ void World::BuildContacts()
 
             if (relVel > Config().velocitySleepThreshold)
             {
-                // Real impact — wake both
                 if (rb1) rb1->WakeUp();
                 if (rb2) rb2->WakeUp();
             }
             else
+            {
                 if (rb1Sleeping && rb2Sleeping) continue;
+            }
         }
 
         contactConstraint.rb1 = rb1;
@@ -319,16 +325,8 @@ void World::IntegratePositions(float dt)
     }
 }
 
-//cleanup caches
-void World::FinishFrame(float dt)
-{
-    //cleanup
-    std::swap(lastFrameContacts, currentFrameContacts);
-}
-
 void World::UpdateSleep(float dt)
 {
-    //loop through rigidbodies and update sleep states based on energy thresholds and timers
     sleepCounter = 0;
     for (const auto& objPtr : gameObjects)
     {
@@ -345,14 +343,14 @@ void World::UpdateSleep(float dt)
 
         float kE = 0.5 * ((m * vSq) + (i * aV * aV));
 
-        if (kE <= Config().sleepThreshold)
+        if (kE <= Config().energyThreshold)
         {
             rb->SetSleepTimer(rb->GetSleepTimer() + dt);
             if (rb->GetSleepTimer() >= Config().sleepTime)
             {
                 rb->SetSleeping(true);
                 sleepCounter++;
-            }
+            }     
         }
         else
         {
@@ -360,7 +358,7 @@ void World::UpdateSleep(float dt)
             rb->SetSleeping(false);
         }
 
-        //DEBUG:
+         //DEBUG:
         if (Config().debugSleep)
         {
             if (rb->IsSleeping())
@@ -369,4 +367,11 @@ void World::UpdateSleep(float dt)
                 obj->GetRenderer()->SetColor({ 255, 100, 100, 255 });
         }
     }
+}
+
+//cleanup caches
+void World::FinishFrame(float dt)
+{
+    //cleanup
+    std::swap(lastFrameContacts, currentFrameContacts);
 }

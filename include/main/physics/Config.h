@@ -9,7 +9,7 @@ struct Config
     int targetFPS = 60;              
 
     Vec2 gravity = Vec2(0.0f, 600.0f);
-    float spatialHashCellSize = 24.0f;
+    float spatialHashCellSize = 50.0f;
     
     int impulseIterations = 8;               
     int positionIterations = 1;              
@@ -22,15 +22,10 @@ struct Config
     float positionCorrectionPercent = 0.1f; 
 
     //sleep
-    float sleepThreshold = 10.0f;
-    float velocitySleepThreshold = 20.0f;
+    float energyThreshold = 15.0f;
+    float velocitySleepThreshold = 10.0f;
     float sleepTime = 0.5f;
-    bool debugSleep = false; //different color for sleeping obj
+    bool debugSleep = true; //different color for sleeping obj
 
     float generatorJitterRange = 4.0f;
 };
-
-inline const Config& GetConfig() {
-    static Config instance;
-    return instance;
-}
