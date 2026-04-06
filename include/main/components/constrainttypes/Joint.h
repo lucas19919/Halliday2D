@@ -5,11 +5,18 @@
 
 class GameObject;
 
+struct JointAttachment
+{
+    GameObject* obj;
+    Vec2 localAnchor;
+};
+
 class JointConstraint : public Constraint
 {
     public:
-        std::vector<GameObject*> connectedObjects;
+        std::vector<JointAttachment> attachments;
 
-        JointConstraint(const std::vector<GameObject*>& objects);
+        JointConstraint(const std::vector<JointAttachment>& attachments);
         ConstraintType GetType() const override;
+        void Solve(float dt) override;
 };

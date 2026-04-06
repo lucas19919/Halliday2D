@@ -15,7 +15,7 @@ int main() {
     InputHandler input;
 
     //all levels under ../assets/( ... ).json
-    const std::string& filepath = "../assets/tower.json";
+    const std::string& filepath = "../assets/constraints/doublePendulum.json";
     LoadScene::Load(filepath, world, screenWidth, screenHeight);
     
     InitWindow(screenWidth, screenHeight, "Engine 1.0");
@@ -35,10 +35,7 @@ int main() {
 
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            for (const auto& objPtr : world.GetGameObjects())
-            {
-                Render(objPtr.get());
-            }
+            Render(world);
             
             uiTimer++;
             if (uiTimer >= uiToggleDelay) {

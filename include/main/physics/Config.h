@@ -21,6 +21,9 @@ struct Config
     float contactSlop = 0.15f;        
     float positionCorrectionPercent = 0.1f; 
 
+    //constraints
+    float biasConstraint = 0.2f; 
+
     //sleep
     float energyThreshold = 15.0f;
     float velocitySleepThreshold = 10.0f;

@@ -5,16 +5,21 @@
 
 class GameObject;
 
+struct PinAttachment
+{
+    GameObject* obj;
+    Vec2 localAnchor;
+};
+
 class PinConstraint : public Constraint
 {
     public:
-        std::vector<GameObject*> connectedObjects;
+        std::vector<PinAttachment> attachments;
 
         bool fixedX = true;
         bool fixedY = true;
 
-        void SetFixedAxes(bool x, bool y) { fixedX = x; fixedY = y; }
-
-        PinConstraint(const std::vector<GameObject*>& objects, bool fixedX, bool fixedY);
+        PinConstraint(const std::vector<PinAttachment>& attachments, bool fixedX, bool fixedY);
         ConstraintType GetType() const override;
+        void Solve(float dt) override;
 };

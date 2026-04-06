@@ -4,74 +4,111 @@
 #include "main/components/collidertypes/BoxCollider.h"
 #include "main/components/collidertypes/CircleCollider.h"
 #include "main/physics/Config.h"
+#include "main/components/constrainttypes/Distance.h"
+#include "main/components/constrainttypes/Pin.h"
+#include "main/components/constrainttypes/Joint.h"
 #include <cmath>
 
-void Render(GameObject *obj)
+void Render(World& world)
 {
-    if (obj->GetRenderer() == nullptr) return;
-
-    Renderer *r = obj->GetRenderer();
-    Shape shape = r->GetShape();
-
-    switch (shape.form)
+    for (const auto& objPtr : world.GetGameObjects())
     {
-    case RenderShape::R_CIRCLE:
-    {
-        float radius = std::get<float>(shape.scale);
-        Vec2 pos = obj->transform.position;
-        float rot = obj->transform.rotation;
+        GameObject* obj = objPtr.get();
+        if (obj->GetRenderer() == nullptr) continue;
 
-        DrawCircle(pos.x, pos.y, radius, shape.color);
-        
-        DrawRing({ pos.x, pos.y }, radius - 2.0f, radius, 0.0f, 360.0f, 36, BLACK);
-        break;
+        Renderer *r = obj->GetRenderer();
+        Shape shape = r->GetShape();
+
+        switch (shape.form)
+        {
+        case RenderShape::R_CIRCLE:
+        {
+            float radius = std::get<float>(shape.scale);
+            Vec2 pos = obj->transform.position;
+            float rot = obj->transform.rotation;
+
+            DrawCircle(pos.x, pos.y, radius, shape.color);
+            
+            DrawRing({ pos.x, pos.y }, radius - 2.0f, radius, 0.0f, 360.0f, 36, BLACK);
+            break;
+        }
+        case RenderShape::R_BOX:
+        {
+            Vec2 size = std::get<Vec2>(shape.scale);
+            
+            DrawRectanglePro(
+                Rectangle{ obj->transform.position.x, obj->transform.position.y, size.x, size.y },
+                { size.x / 2.0f, size.y / 2.0f },
+                obj->transform.rotation * RAD2DEG,
+                shape.color
+            );        
+
+            Array<20> vertices = r->UpdateWorldCoordinates(obj->transform.position, obj->transform.rotation);
+            
+            for (size_t i = 0; i < vertices.Size(); i++) 
+            {
+                Vec2 p1 = vertices[i];
+                Vec2 p2 = vertices[(i + 1) % vertices.Size()];
+                DrawLineEx({ p1.x, p1.y }, { p2.x, p2.y }, 2.0f, BLACK);
+            }
+            break;
+        }
+        case RenderShape::R_POLYGON:
+        {
+            Array<20> vertices = r->UpdateWorldCoordinates(obj->transform.position, obj->transform.rotation);
+            int vertexCount = vertices.Size();
+            
+            if (vertexCount < 3) break; 
+
+            std::vector<Vector2> raylibVerts(vertexCount);
+            for (int i = 0; i < vertexCount; i++) 
+            {
+                raylibVerts[i] = { vertices[i].x, vertices[i].y }; 
+            }
+
+            for (int i = 1; i < vertexCount - 1; i++) 
+            {
+                DrawTriangle(raylibVerts[0], raylibVerts[i + 1], raylibVerts[i], shape.color);
+            }
+            
+            for (int i = 0; i < vertexCount; i++) 
+            {
+                DrawLineEx(raylibVerts[i], raylibVerts[(i + 1) % vertexCount], 2.0f, BLACK);
+            }
+            break;
+        }
+        default:
+            break;
+        }
     }
-    case RenderShape::R_BOX:
+
+    for (auto& c : world.GetConstraints())
     {
-        Vec2 size = std::get<Vec2>(shape.scale);
-        
-        DrawRectanglePro(
-            Rectangle{ obj->transform.position.x, obj->transform.position.y, size.x, size.y },
-            { size.x / 2.0f, size.y / 2.0f },
-            obj->transform.rotation * RAD2DEG,
-            shape.color
-        );        
+        if (c->GetType() == ConstraintType::DISTANCE)
+        {
+            DistanceConstraint* dc = static_cast<DistanceConstraint*>(c.get());
+            Vec2 pos1 = dc->anchor->transform.position;
+            Vec2 pos2 = dc->attached->transform.position;
 
-        Array<20> vertices = r->UpdateWorldCoordinates(obj->transform.position, obj->transform.rotation);
-        
-        for (size_t i = 0; i < vertices.Size(); i++) 
-        {
-            Vec2 p1 = vertices[i];
-            Vec2 p2 = vertices[(i + 1) % vertices.Size()];
-            DrawLineEx({ p1.x, p1.y }, { p2.x, p2.y }, 2.0f, BLACK);
+            DrawLineEx({ pos1.x, pos1.y }, { pos2.x, pos2.y }, 2.0f, DARKGRAY);
         }
-        break;
-    }
-    case RenderShape::R_POLYGON:
-    {
-        Array<20> vertices = r->UpdateWorldCoordinates(obj->transform.position, obj->transform.rotation);
-        int vertexCount = vertices.Size();
-        
-        if (vertexCount < 3) break; 
-
-        std::vector<Vector2> raylibVerts(vertexCount);
-        for (int i = 0; i < vertexCount; i++) 
+        else if (c->GetType() == ConstraintType::PIN)
         {
-            raylibVerts[i] = { vertices[i].x, vertices[i].y }; 
+            PinConstraint* pc = static_cast<PinConstraint*>(c.get());
+            for (const auto& att : pc->attachments)
+            {
+                Vec2 pos = att.obj->transform.position;
+                DrawCircle(pos.x, pos.y, 5.0f, DARKGRAY);
+            }
         }
-
-        for (int i = 1; i < vertexCount - 1; i++) 
+        else if (c->GetType() == ConstraintType::JOINT)
         {
-            DrawTriangle(raylibVerts[0], raylibVerts[i + 1], raylibVerts[i], shape.color);
+            JointConstraint* jc = static_cast<JointConstraint*>(c.get());
+            for (const auto& att : jc->attachments)
+            {
+                Vec2 pos = att.obj->transform.position;
+                DrawCircle(pos.x, pos.y, 5.0f, DARKGRAY);
+            }
         }
-        
-        for (int i = 0; i < vertexCount; i++) 
-        {
-            DrawLineEx(raylibVerts[i], raylibVerts[(i + 1) % vertexCount], 2.0f, BLACK);
-        }
-        break;
-    }
-    default:
-        break;
     }
 }

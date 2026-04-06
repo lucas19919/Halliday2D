@@ -44,6 +44,9 @@ class World
         void AddGameObject(std::unique_ptr<GameObject> obj);
         std::vector<std::unique_ptr<GameObject>>& GetGameObjects();
 
+        void AddConstraint(std::unique_ptr<Constraint> c);
+        const std::vector<std::unique_ptr<Constraint>>& GetConstraints() const { return constraints; }
+
         //abstract stuff like this later ???
         bool isPaused = true;
         int sleepCounter = 0;
@@ -54,16 +57,15 @@ class World
 
         void UpdateBroadphase();
         void GeneratePairs();
-        void BuildContacts();
 
+        void BuildContacts();
         void PrepareContacts();
-        void SolveConstraints();
+        void SolveConstraints(float dt);
+
         void IntegratePositions(float dt);
 
-        void FinishFrame(float dt);
-
-        void BuildIslands();
         void UpdateSleep(float dt);
+        void FinishFrame(float dt);
 
     private:
         SpatialHash spatialHash;
@@ -76,4 +78,6 @@ class World
 
         std::vector<ContactConstraint> currentFrameContacts;
         std::vector<ContactConstraint> lastFrameContacts;
+
+        std::vector<std::unique_ptr<Constraint>> constraints;
 };

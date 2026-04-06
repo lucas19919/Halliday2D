@@ -1,5 +1,7 @@
 #pragma once
 #include "main/GameObject.h"
+#include "main/World.h"
 #include "raylib.h"
 
-void Render(GameObject *obj);
+
+void Render(World& world);

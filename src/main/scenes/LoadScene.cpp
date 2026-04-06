@@ -7,9 +7,32 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <unordered_map>
 #include <libraries/json/json.hpp>
+#include "main/components/constrainttypes/Distance.h"
+#include "main/components/constrainttypes/Pin.h"
+#include "main/components/constrainttypes/Joint.h"
 
 using json = nlohmann::json;
+
+static Color ParseColor(const std::string& str)
+{
+    if (str == "RED")      return RED;
+    if (str == "GREEN")    return GREEN;
+    if (str == "BLUE")     return BLUE;
+    if (str == "BROWN")    return BROWN;
+    if (str == "DARKGRAY") return DARKGRAY;
+    if (str == "YELLOW")   return YELLOW;
+    if (str == "ORANGE")   return ORANGE;
+    if (str == "WHITE")    return WHITE;
+    if (str == "BLACK")    return BLACK;
+    return GRAY;
+}
+
+static Vec2 ParseVec2(const json& j)
+{
+    return Vec2(j["x"].get<float>(), j["y"].get<float>());
+}
 
 void LoadScene::Load(const std::string& filePath, World& world, int screenWidth, int screenHeight)
 {
@@ -44,9 +67,15 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
             .Create(world);
     }
 
+    std::unordered_map<int, GameObject*> idMap;
+
     for (const auto& item : sceneData["objects"])
     {
-        LoadObject(item, world);
+        GameObject* obj = LoadObject(item, world);
+        if (obj && item.contains("id"))
+        {
+            idMap[item["id"].get<int>()] = obj;
+        }
     }
 
     if (sceneData.contains("generators"))
@@ -59,12 +88,13 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
         {
             if (!generator.contains("grid") || !generator.contains("object")) continue;
 
-            int rows = generator["grid"]["rows"];
-            int cols = generator["grid"]["columns"];
-            float startX = generator["grid"]["startX"];
-            float startY = generator["grid"]["startY"];
-            float spacingX = generator["grid"]["spacingX"];
-            float spacingY = generator["grid"]["spacingY"];
+            const auto& grid = generator["grid"];
+            int rows = grid["rows"];
+            int cols = grid["columns"];
+            float startX = grid["startX"];
+            float startY = grid["startY"];
+            float spacingX = grid["spacingX"];
+            float spacingY = grid["spacingY"];
 
             json genObject = generator["object"];
 
@@ -83,16 +113,19 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
             }
         }
     }
+
+    if (sceneData.contains("constraints"))
+    {
+        LoadConstraints(sceneData["constraints"], world, idMap);
+    }
 }
 
-void LoadScene::LoadObject(const json& item, World& world)
+GameObject* LoadScene::LoadObject(const json& item, World& world)
 {
-    if (!item.contains("components")) return;
+    if (!item.contains("components")) return nullptr;
     const auto& components = item["components"];
 
-    float posX = 0.0f;
-    float posY = 0.0f;
-    float rotation = 0.0f;
+    float posX = 0.0f, posY = 0.0f, rotation = 0.0f;
 
     if (components.contains("TransformComponent"))
     {
@@ -101,124 +134,149 @@ void LoadScene::LoadObject(const json& item, World& world)
         rotation = components["TransformComponent"]["rotation"];
     }
 
-    ColliderType colType = ColliderType::BOX;
-    Vec2 boxSize;
-    float circleRadius = 0.0f;
-    Array<20> polyVerts;
-    
-    if (components.contains("Collider"))
-    {
-        std::string type = components["Collider"]["type"];
-        if (type == "BOX")
-        {
-            colType = ColliderType::BOX;
-            boxSize.x = components["Collider"]["size"]["x"];
-            boxSize.y = components["Collider"]["size"]["y"];
-        }
-        else if (type == "CIRCLE")
-        {
-            colType = ColliderType::CIRCLE;
-            circleRadius = components["Collider"]["radius"];
-        }
-        else if (type == "POLYGON")
-        {
-            colType = ColliderType::POLYGON;
-            for (const auto& v : components["Collider"]["vertices"])
-            {
-                polyVerts.PushBack(Vec2(v["x"], v["y"]));
-            }
-        }
-    }
-
-    Shape renderShape;
-
-    if (components.contains("Renderer"))
-    {
-        std::string form = components["Renderer"]["form"];
-        std::string colorStr = components["Renderer"]["color"];
-
-        Color col = GRAY;
-        if (colorStr == "RED") col = RED;
-        else if (colorStr == "GREEN") col = GREEN;
-        else if (colorStr == "BLUE") col = BLUE;
-
-        renderShape.color = col;
-
-        if (form == "R_BOX")
-        {
-            renderShape.form = RenderShape::R_BOX;
-            Vec2 size = Vec2(components["Renderer"]["scale"]["x"], components["Renderer"]["scale"]["y"]);
-            renderShape.scale = size;
-        }
-        else if (form == "R_CIRCLE")
-        {
-            renderShape.form = RenderShape::R_CIRCLE;
-            renderShape.scale = components["Renderer"]["scale"];
-        }
-        else if (form == "R_POLYGON")
-        {
-            renderShape.form = RenderShape::R_POLYGON;
-            Array<20> vertices;
-
-            for (const auto& v : components["Renderer"]["scale"])
-            {
-                vertices.PushBack(Vec2(v["x"], v["y"]));
-            }
-
-            renderShape.scale = vertices;
-        }
-    }
-
     Instantiate builder = Instantiate().WithTransform(Vec2(posX, posY), rotation);
 
     if (components.contains("Collider"))
     {
-        if (colType == ColliderType::BOX)
+        const auto& col = components["Collider"];
+        std::string type = col["type"];
+
+        if (type == "BOX")
         {
-            builder.WithCollider(colType, boxSize);
+            builder.WithCollider(ColliderType::BOX, ParseVec2(col["size"]));
         }
-        else if (colType == ColliderType::CIRCLE)
+        else if (type == "CIRCLE")
         {
-            builder.WithCollider(colType, circleRadius);
+            builder.WithCollider(ColliderType::CIRCLE, col["radius"].get<float>());
         }
-        else if (colType == ColliderType::POLYGON)
+        else if (type == "POLYGON")
         {
-            builder.WithCollider(colType, polyVerts);
+            Array<20> verts;
+            for (const auto& v : col["vertices"])
+                verts.PushBack(ParseVec2(v));
+            builder.WithCollider(ColliderType::POLYGON, verts);
         }
     }
 
     if (components.contains("Renderer"))
     {
-        builder.WithRenderer(renderShape);
+        const auto& ren = components["Renderer"];
+        Shape shape;
+        shape.color = ParseColor(ren["color"]);
+        std::string form = ren["form"];
+
+        if (form == "R_BOX")
+        {
+            shape.form = RenderShape::R_BOX;
+            shape.scale = ParseVec2(ren["scale"]);
+        }
+        else if (form == "R_CIRCLE")
+        {
+            shape.form = RenderShape::R_CIRCLE;
+            shape.scale = ren["scale"].get<float>();
+        }
+        else if (form == "R_POLYGON")
+        {
+            shape.form = RenderShape::R_POLYGON;
+            Array<20> verts;
+            for (const auto& v : ren["scale"])
+                verts.PushBack(ParseVec2(v));
+            shape.scale = verts;
+        }
+
+        builder.WithRenderer(shape);
     }
 
     if (components.contains("RigidBody"))
     {
-        Properties props = { 1.0f, 0.5f, 100.0f, 1.0f };
-        LinearState linear = { Vec2(), Vec2(), Vec2() };
-        AngularState angular = { 0.0f, 0.0f, 0.0f };
-        Settings settings = { true };
+        const auto& rb = components["RigidBody"];
+        const auto& props = rb["properties"];
+        const auto& lin = rb["linearState"];
+        const auto& ang = rb["angularState"];
 
-        props.mass = components["RigidBody"]["properties"]["mass"];
-        props.restitution = components["RigidBody"]["properties"]["restitution"];
-        props.friction = components["RigidBody"]["properties"]["friction"];
-        props.inertia = components["RigidBody"]["properties"]["inertia"];
-
-        linear.velocity.x = components["RigidBody"]["linearState"]["velocity"]["x"];
-        linear.velocity.y = components["RigidBody"]["linearState"]["velocity"]["y"];
-        linear.acceleration.x = components["RigidBody"]["linearState"]["acceleration"]["x"];
-        linear.acceleration.y = components["RigidBody"]["linearState"]["acceleration"]["y"];
-        linear.netForce.x = components["RigidBody"]["linearState"]["netForce"]["x"];
-        linear.netForce.y = components["RigidBody"]["linearState"]["netForce"]["y"];
-
-        angular.angularVelocity = components["RigidBody"]["angularState"]["angularVelocity"];
-        angular.angularAcceleration = components["RigidBody"]["angularState"]["angularAcceleration"];
-        angular.torque = components["RigidBody"]["angularState"]["torque"];
-
-        settings.gravityEnabled = components["RigidBody"].value("gravityEnabled", true);
-
-        builder.WithRigidBody(props, linear, angular, settings);
+        builder.WithRigidBody(
+            Properties{
+                props["mass"], props["restitution"],
+                props["inertia"], props["friction"]
+            },
+            LinearState{
+                ParseVec2(lin["velocity"]),
+                ParseVec2(lin["acceleration"]),
+                ParseVec2(lin["netForce"])
+            },
+            AngularState{
+                ang["angularVelocity"],
+                ang["angularAcceleration"],
+                ang["torque"]
+            },
+            Settings{ rb.value("gravityEnabled", true) }
+        );
     }
 
-    builder.Create(world);
-}    
+    return builder.Create(world);
+}
+
+void LoadScene::LoadConstraints(const json& constraints, World& world, const std::unordered_map<int, GameObject*>& idMap)
+{
+    for (const auto& item : constraints)
+    {
+        std::string type = item["type"];
+
+        if (type == "DISTANCE")
+        {
+            int anchorId = item["anchor"];
+            int attachedId = item["attached"];
+            float length = item["length"];
+
+            auto itA = idMap.find(anchorId);
+            auto itB = idMap.find(attachedId);
+            if (itA == idMap.end() || itB == idMap.end()) continue;
+
+            world.AddConstraint(std::make_unique<DistanceConstraint>(
+                itA->second, itB->second, length
+            ));
+        }
+        else if (type == "PIN")
+        {
+            std::vector<PinAttachment> attachments;
+            for (const auto& att : item["attachments"])
+            {
+                auto it = idMap.find(att["id"].get<int>());
+                if (it == idMap.end()) continue;
+
+                Vec2 anchor = att.contains("localAnchor") ? ParseVec2(att["localAnchor"]) : Vec2();
+                attachments.push_back({ it->second, anchor });
+            }
+
+            if (attachments.empty()) continue;
+
+            bool fixedX = item.value("fixedX", true);
+            bool fixedY = item.value("fixedY", true);
+
+            auto pin = std::make_unique<PinConstraint>(attachments, fixedX, fixedY);
+
+            if (item.contains("position"))
+                pin->position = ParseVec2(item["position"]);
+            else
+                pin->position = attachments[0].obj->transform.position;
+
+            world.AddConstraint(std::move(pin));
+        }
+        else if (type == "JOINT")
+        {
+            std::vector<JointAttachment> attachments;
+            for (const auto& att : item["attachments"])
+            {
+                auto it = idMap.find(att["id"].get<int>());
+                if (it == idMap.end()) continue;
+
+                Vec2 anchor = att.contains("localAnchor") ? ParseVec2(att["localAnchor"]) : Vec2();
+                attachments.push_back({ it->second, anchor });
+            }
+
+            if (attachments.size() < 2) continue;
+
+            world.AddConstraint(std::make_unique<JointConstraint>(attachments));
+        }
+    }
+}

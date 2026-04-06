@@ -3,6 +3,7 @@
 #include "components/RigidBody.h"
 #include "components/Renderer.h"
 #include "components/Collider.h"
+#include "components/Constraint.h"
 #include <memory>
 
 class GameObject
@@ -10,6 +11,9 @@ class GameObject
     public:
         GameObject();
         ~GameObject();
+
+        void SetID(size_t newID) { id = newID; }
+        const size_t& GetID() const { return id; }
 
         Array<20> cachedVertices;
         Array<20> cachedNormals;
@@ -23,8 +27,11 @@ class GameObject
         void SetRigidBody(std::unique_ptr<RigidBody> rb);
         void SetCollider(std::unique_ptr<Collider> c);
         void SetRenderer(std::unique_ptr<Renderer> r);
+        
     private:
         std::unique_ptr<RigidBody> rigidBody;
         std::unique_ptr<Collider> collider;
         std::unique_ptr<Renderer> renderer;
+
+        size_t id;
 };

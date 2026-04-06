@@ -65,40 +65,9 @@ void Solver::ResolvePosition(ContactConstraint& contact)
 
 void Solver::Warmstart(ContactConstraint& contact)
 {
-    RigidBody* rb1 = contact.rb1;
-    RigidBody* rb2 = contact.rb2;
-
-    float invMass1 = (rb1) ? rb1->GetInvMass() : 0.0f;
-    float invMass2 = (rb2) ? rb2->GetInvMass() : 0.0f;
-    float invInertia1 = (rb1) ? rb1->GetInvInertia() : 0.0f;
-    float invInertia2 = (rb2) ? rb2->GetInvInertia() : 0.0f;
-
     for (int i = 0; i < contact.pointCount; i++)
     {
-        Vec2 contactPoint = contact.points[i];
-
-        Vec2 r1 = contactPoint - contact.obj1->transform.position;
-        Vec2 r2 = contactPoint - contact.obj2->transform.position;
-
-        Vec2 normal = contact.normal;
-        Vec2 tangent = Vec2(-normal.y, normal.x);
-
-        float jn = contact.accumulatedNormalImpulse[i];
-        float jt = contact.accumulatedTangentImpulse[i];
-
-        Vec2 impulse = normal * jn + tangent * jt;
-
-        if (rb1)
-        {
-            rb1->SetVelocity(rb1->GetVelocity() - impulse * invMass1);
-            rb1->SetAngularVelocity(rb1->GetAngularVelocity() - r1.Cross(impulse) * invInertia1);
-        }
-
-        if (rb2)
-        {
-            rb2->SetVelocity(rb2->GetVelocity() + impulse * invMass2);
-            rb2->SetAngularVelocity(rb2->GetAngularVelocity() + r2.Cross(impulse) * invInertia2);
-        }
+        ApplyImpulse(contact, i, contact.accumulatedNormalImpulse[i], contact.accumulatedTangentImpulse[i]);
     }
 }
 

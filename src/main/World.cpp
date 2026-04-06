@@ -20,6 +20,11 @@ void World::AddGameObject(std::unique_ptr<GameObject> obj)
     gameObjects.push_back(std::move(obj));
 }
 
+void World::AddConstraint(std::unique_ptr<Constraint> c)
+{
+    constraints.push_back(std::move(c));
+}
+
 void World::Clear()
 {
     gameObjects.clear();
@@ -27,6 +32,8 @@ void World::Clear()
     lastFrameContacts.clear();
     gridMap.clear();
     candidatePairs.clear();
+    candidatePairKeys.clear();
+    constraints.clear();
 }
 
 //step world forward by dt seconds
@@ -42,7 +49,7 @@ void World::Step(float dt)
 
     BuildContacts();
     PrepareContacts();
-    SolveConstraints();
+    SolveConstraints(dt);
 
     IntegratePositions(dt);
 
@@ -101,6 +108,8 @@ void World::UpdateBroadphase()
         GameObject* obj = objPtr.get();
         RigidBody* rb = obj->GetRigidBody();
         Collider* c = obj->GetCollider();
+
+        if (!c) continue;
 
         //update cached vertices/normals and bounds for spatial hash
         if (!rb || !rb->IsSleeping())
@@ -291,13 +300,18 @@ void World::PrepareContacts()
 }
 
 //solver iterations
-void World::SolveConstraints()
+void World::SolveConstraints(float dt)
 {
     for (int i = 0; i < Config().impulseIterations; i++)
     {
         for (auto& contact : currentFrameContacts)
         {
             Solver::ResolveConstraints(contact);
+        }
+
+        for (auto& constraint : constraints)
+        {
+            constraint->Solve(dt);
         }
     }
 
