@@ -19,8 +19,6 @@ class PinConstraint : public Constraint
         bool fixedX = true;
         bool fixedY = true;
 
-        bool staticallyDetermined = false; 
-
         PinConstraint(const std::vector<PinAttachment>& attachments, Vec2 pos, bool fixedX, bool fixedY);
         ConstraintType GetType() const override;
         void Solve(float dt) override;

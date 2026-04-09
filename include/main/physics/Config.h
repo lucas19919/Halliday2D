@@ -13,7 +13,7 @@ struct Config
     Vec2 gravity = Vec2(0.0f, 600.0f);
     float spatialHashCellSize = 50.0f;
     
-    int impulseIterations = 20;               
+    int impulseIterations = 8;               
     int positionIterations = 1;              
 
     bool warmStart = true;
@@ -24,7 +24,7 @@ struct Config
     float positionCorrectionPercent = 0.1f; 
 
     //constraints
-    float biasConstraint = 0.1f; 
+    float biasConstraint = 0.2f; 
 
     //sleep
     float energyThreshold = 25.0f;

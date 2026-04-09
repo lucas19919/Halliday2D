@@ -2,6 +2,8 @@
 #include "main/components/Constraint.h"
 #include "main/World.h"
 #include "main/physics/Config.h"
+#include "math/RotationMatrix.h"
+#include "math/Matrix2x2.h"
 
 PinConstraint::PinConstraint(const std::vector<PinAttachment>& attachments, Vec2 pos, bool fixedX, bool fixedY)
     : attachments(attachments), fixedX(fixedX), fixedY(fixedY)
@@ -16,78 +18,63 @@ ConstraintType PinConstraint::GetType() const
 
 void PinConstraint::Solve(float dt)
 {
-    if (staticallyDetermined) return;
-
-    float biasConstraint = Config().biasConstraint;
-
-    for (auto& att : attachments)
+    for (PinAttachment att : attachments)
     {
-        RigidBody* rb = att.obj->GetRigidBody();
+        GameObject* obj = att.obj;
+        RigidBody* rb = obj->GetRigidBody();
         if (!rb) continue;
 
-        float invMass = rb->GetInvMass();
-        float invInertia = rb->GetInvInertia();
-        if (invMass == 0.0f) continue;
+        Vec2 r = RotMatrix(obj->transform.rotation).Rotate(att.localAnchor);
 
-        float s = sinf(att.obj->transform.rotation);
-        float c = cosf(att.obj->transform.rotation);
-        Vec2 rotatedAnchor = Vec2(
-            att.localAnchor.x * c - att.localAnchor.y * s,
-            att.localAnchor.x * s + att.localAnchor.y * c
-        );
+        Vec2 worldAnchor = obj->transform.position + r;
+        Vec2 delta = position - worldAnchor;
 
-        Vec2 worldAnchor = att.obj->transform.position + rotatedAnchor;
-        Vec2 delta = worldAnchor - position;
+        Vec2 v = rb->GetVelocity();
+        float w = rb->GetAngularVelocity();
+        
+        Vec2 pointVelocity(v.x - w * r.y, v.y + w * r.x);
+        Vec2 biasVelocity = delta * (Config().biasConstraint / dt);
+        Vec2 targetVelocity = biasVelocity - pointVelocity;
+        
+        //k
+        float iI = rb->GetInvInertia();
+        float iM = rb->GetInvMass();
 
-        Vec2 velocity = rb->GetVelocity();
-        float angularVelocity = rb->GetAngularVelocity();
+        if (fixedX && fixedY)
+        {
+            Matrix2x2 K(
+                iM + (r.y * r.y) * iI, 
+                -r.x * r.y * iI,
+                -r.x * r.y * iI,       
+                iM + (r.x * r.x) * iI
+            );
 
-        Vec2 pointVelocity = velocity + Vec2(-angularVelocity * rotatedAnchor.y, angularVelocity * rotatedAnchor.x);
+            Matrix2x2 K_inv = K.Inverse();
+            Vec2 impulse = K_inv * targetVelocity;
 
-        Vec2 bias = (biasConstraint / dt) * delta;
-        Vec2 impulse(0.0f, 0.0f);
-
-        if (fixedX) {
-            Vec2 n(1, 0); // X direction
-            float rn = rotatedAnchor.Cross(n);
-            float effMass = invMass + rn * rn * invInertia;
-            if (effMass > 0.0f) {
-                float velAlong = pointVelocity.x;
-                float lambda = -(velAlong + bias.x) / effMass;
-                impulse.x = lambda;
+            rb->SetVelocity(v + impulse * iM);
+            rb->SetAngularVelocity(w + (r.Cross(impulse) * iI));
+        }
+        else if (fixedX)
+        {
+            float effMassX = iM + (r.y * r.y) * iI;
+            if (effMassX > 0.0f)
+            {
+                float impulseX = targetVelocity.x / effMassX;
+                rb->SetVelocity(Vec2(v.x + impulseX * iM, v.y));
+                rb->SetAngularVelocity(w + (r.Cross(Vec2(impulseX, 0.0f)) * iI));
             }
         }
-
-        if (fixedY) {
-            Vec2 n(0, 1); // Y direction
-            float rn = rotatedAnchor.Cross(n);
-            float effMass = invMass + rn * rn * invInertia;
-            if (effMass > 0.0f) {
-                float velAlong = pointVelocity.y;
-                float lambda = -(velAlong + bias.y) / effMass;
-                impulse.y = lambda;
+        else if (fixedY)
+        {
+            float effMassY = iM + (r.x * r.x) * iI;
+            if (effMassY > 0.0f)
+            {
+                float impulseY = targetVelocity.y / effMassY;
+                rb->SetVelocity(Vec2(v.x, v.y + impulseY * iM));
+                rb->SetAngularVelocity(w + (r.Cross(Vec2(0.0f, impulseY)) * iI));
             }
         }
-
-        velocity += impulse * invMass;
-        angularVelocity += rotatedAnchor.Cross(impulse) * invInertia;
-
-        rb->SetVelocity(velocity);
-        rb->SetAngularVelocity(angularVelocity);
-    }
-
-    if (!attachments.empty())
-    {
-        auto& first = attachments[0];
-        float sin = sinf(first.obj->transform.rotation);
-        float cos = cosf(first.obj->transform.rotation);
-
-        Vec2 rotatedAnchor = Vec2(
-            first.localAnchor.x * cos - first.localAnchor.y * sin,
-            first.localAnchor.x * sin + first.localAnchor.y * cos
-        );
-
-        Vec2 worldAnchor = first.obj->transform.position + rotatedAnchor;
 
         if (!fixedX) position.x = worldAnchor.x;
         if (!fixedY) position.y = worldAnchor.y;

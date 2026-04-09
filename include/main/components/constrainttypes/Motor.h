@@ -1,0 +1,20 @@
+#pragma once
+#include "math/Vec2.h"
+#include "main/components/Constraint.h"
+#include "main/components/constrainttypes/Pin.h"
+#include <vector>
+
+class GameObject;
+
+class MotorConstraint : public Constraint
+{
+    public:
+        GameObject* rotor;
+
+        float torque;
+        Vec2 localPosition; //relative to rotor center
+
+        MotorConstraint(GameObject* rotor, Vec2 pos, float torque);
+        ConstraintType GetType() const override;
+        void Solve(float dt) override;
+};

@@ -8,8 +8,7 @@ enum ConstraintType
     DISTANCE,
     PIN,
     JOINT,
-    NORMAL,
-    SHEAR
+    MOTOR
 };
 
 class Constraint

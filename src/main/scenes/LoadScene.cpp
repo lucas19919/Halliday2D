@@ -12,6 +12,7 @@
 #include "main/components/constrainttypes/Distance.h"
 #include "main/components/constrainttypes/Pin.h"
 #include "main/components/constrainttypes/Joint.h"
+#include "main/components/constrainttypes/Motor.h"
 
 using json = nlohmann::json;
 
@@ -255,6 +256,8 @@ void LoadScene::LoadConstraints(const json& constraints, World& world, const std
             bool fixedX = item.value("fixedX", true);
             bool fixedY = item.value("fixedY", true);
 
+            if (!fixedX && !fixedY) continue;
+
             Vec2 pinPos = item.contains("position") ? ParseVec2(item["position"]) : attachments[0].obj->transform.position;
             auto pin = std::make_unique<PinConstraint>(attachments, pinPos, fixedX, fixedY);
 
@@ -276,7 +279,18 @@ void LoadScene::LoadConstraints(const json& constraints, World& world, const std
 
             world.AddConstraint(std::make_unique<JointConstraint>(attachments));
         }
+        else if (type == "MOTOR")
+        {
+            int rotorId = item["rotor"];
+            Vec2 localPosition = item.contains("localPosition") ? ParseVec2(item["localPosition"]) : Vec2();
+            float torque = item["torque"].get<float>();
 
-        //add some sort of smart solver for pins
+            auto it = idMap.find(rotorId);
+            if (it == idMap.end()) continue;
+
+            auto motor = std::make_unique<MotorConstraint>(it->second, localPosition, torque);
+
+            world.AddConstraint(std::move(motor));
+        }
     }
 }

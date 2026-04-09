@@ -7,7 +7,9 @@
 #include "main/components/constrainttypes/Distance.h"
 #include "main/components/constrainttypes/Pin.h"
 #include "main/components/constrainttypes/Joint.h"
+#include "main/components/constrainttypes/Motor.h"
 #include <cmath>
+#include "math/RotationMatrix.h"
 
 void Render(World& world)
 {
@@ -136,6 +138,16 @@ void Render(World& world)
                 DrawCircleLines(pos.x, pos.y, 5.0f, DARKGRAY);
             }
         }
+        if (c->GetType() == ConstraintType::MOTOR)
+        {
+            MotorConstraint* mc = static_cast<MotorConstraint*>(c.get());
+            Vec2 r = RotMatrix(mc->rotor->transform.rotation).Rotate(mc->localPosition);
+            Vec2 pos = mc->rotor->transform.position + r;
+
+            DrawCircle(pos.x, pos.y, 10.0f, RED);
+            DrawCircleLines(pos.x, pos.y, 10.0f, BLACK);
+        }
+
         if (c->GetType() == ConstraintType::JOINT)
         {
             JointConstraint* jc = static_cast<JointConstraint*>(c.get());
