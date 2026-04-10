@@ -18,15 +18,11 @@ int main() {
     const std::string& filepath = "../assets/demos/Motor.json";
     LoadScene::Load(filepath, world, screenWidth, screenHeight);
     
-    InitWindow(screenWidth, screenHeight, "Engine 1.0");
+    InitWindow(screenWidth, screenHeight, "Halliday2D");
     SetTargetFPS(Config().targetFPS);    
 
     //draw fps?
     bool FPS = Config().drawFPS;
-
-    int uiTimer = 0;
-    int uiToggleDelay = 60;
-    int sleepingObjects = world.sleepCounter;
 
     const float dt = 1.0f / 60.0f;
     while (!WindowShouldClose()) {
@@ -37,15 +33,6 @@ int main() {
             ClearBackground(RAYWHITE);
             Render(world);
             
-            uiTimer++;
-            if (uiTimer >= uiToggleDelay) {
-                sleepingObjects = world.sleepCounter;
-                uiTimer = 0;
-            }
-
-            if (Config().debugSleep)
-                DrawText(std::to_string(sleepingObjects).c_str(), 10, 50, 30, BLACK);
-
             if (FPS)
                 DrawFPS(10, 10);
         EndDrawing();

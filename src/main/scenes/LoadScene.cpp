@@ -83,7 +83,7 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
     {
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> jitter(-Config().generatorJitterRange, Config().generatorJitterRange);
+        std::uniform_real_distribution<float> jitter(-Config::generatorJitterRange, Config::generatorJitterRange);
 
         for (const auto& generator : sceneData["generators"])
         {

@@ -3,7 +3,6 @@
 #include "main/components/Renderer.h"
 #include "main/components/collidertypes/BoxCollider.h"
 #include "main/components/collidertypes/CircleCollider.h"
-#include "main/physics/Config.h"
 #include "main/components/constrainttypes/Distance.h"
 #include "main/components/constrainttypes/Pin.h"
 #include "main/components/constrainttypes/Joint.h"

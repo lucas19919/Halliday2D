@@ -14,7 +14,7 @@ ConstraintType JointConstraint::GetType() const
 
 void JointConstraint::Solve(float dt)
 {
-    float biasConstraint = Config().biasConstraint;
+    float biasConstraint = Config::biasConstraint;
 
     Vec2 target;
     int count = 0;

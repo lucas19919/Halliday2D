@@ -29,6 +29,12 @@ struct Vec2 {
         y += other.y;
     }
 
+    void operator-=(const Vec2& other)
+    {
+        x -= other.x;
+        y -= other.y;
+    }
+
     float Mag() const;
     float MagSq() const;
     Vec2 Norm() const;
