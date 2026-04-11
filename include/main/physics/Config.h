@@ -23,7 +23,7 @@ struct Config
     static inline float contactSlop = 0.05f;        
     static inline float positionCorrectionPercent = 0.2f; 
 
-    static inline float biasConstraint = 0.2f; 
+    static inline float biasConstraint = 0.1f; 
 
     static inline float generatorJitterRange = 4.0f;
 };

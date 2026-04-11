@@ -16,67 +16,73 @@ ConstraintType JointConstraint::GetType() const
     return ConstraintType::JOINT;
 }
 
+//solver needs to be changed to compare all to each other ie solve a matrix problem
+//else the joints arent equal and the weird shaking happens 
 void JointConstraint::Solve(float dt)
 {
-    if (attachments.size() < 2) return;
+if (attachments.size() < 2) return;
 
     GameObject* obj1 = attachments[0].obj;
-    GameObject* obj2 = attachments[1].obj;
-
     RigidBody* rb1 = obj1->GetRigidBody();
-    RigidBody* rb2 = obj2->GetRigidBody();
-
+    
     float invMass1 = (rb1) ? rb1->GetInvMass() : 0.0f;
-    float invMass2 = (rb2) ? rb2->GetInvMass() : 0.0f;
     float invInertia1 = (rb1) ? rb1->GetInvInertia() : 0.0f;
-    float invInertia2 = (rb2) ? rb2->GetInvInertia() : 0.0f;
 
-    if (invMass1 == 0.0f && invMass2 == 0.0f) return;
-
-    RotMatrix rot1(obj1->transform.rotation);
-    Vec2 r1 = rot1.Rotate(attachments[0].localAnchor);
-
-    RotMatrix rot2(obj2->transform.rotation);
-    Vec2 r2 = rot2.Rotate(attachments[1].localAnchor);
-
-    Vec2 p1 = obj1->transform.position + r1;
-    Vec2 p2 = obj2->transform.position + r2;
-
-    Vec2 v1 = rb1 ? rb1->GetVelocity() : Vec2(0,0);
-    float w1 = rb1 ? rb1->GetAngularVelocity() : 0.0f;
-
-    Vec2 v2 = rb2 ? rb2->GetVelocity() : Vec2(0,0);
-    float w2 = rb2 ? rb2->GetAngularVelocity() : 0.0f;
-
-    Vec2 vp1(v1.x - w1 * r1.y, v1.y + w1 * r1.x);
-    Vec2 vp2(v2.x - w2 * r2.y, v2.y + w2 * r2.x);
-    Vec2 relative = vp2 - vp1;
-
-    Vec2 distVector = p2 - p1;
-    Vec2 biasVelocity = distVector * (Config::biasConstraint / dt);
-
-    float k11 = invMass1 + invMass2 + (r1.y * r1.y * invInertia1) + (r2.y * r2.y * invInertia2);
-    float k12 = -r1.x * r1.y * invInertia1 - r2.x * r2.y * invInertia2;
-    float k21 = k12;
-    float k22 = invMass1 + invMass2 + (r1.x * r1.x * invInertia1) + (r2.x * r2.x * invInertia2);
-
-    Matrix2x2 K(k11, k12, k21, k22);
-    Matrix2x2 K_inv = K.Inverse();
-
-    Vec2 targetVelocity = relative + biasVelocity;
-    Vec2 impulse = (K_inv * targetVelocity) * -1.0f;
-
-    if (rb1)
+    for (size_t i = 1; i < attachments.size(); ++i)
     {
-        rb1->SetVelocity(v1 - impulse * invMass1);
-        rb1->SetAngularVelocity(w1 - (r1.Cross(impulse) * invInertia1));
-    }
+        GameObject* obj2 = attachments[i].obj;
+        RigidBody* rb2 = obj2->GetRigidBody();
 
-    if (rb2)
-    {
-        rb2->SetVelocity(v2 + impulse * invMass2);
-        rb2->SetAngularVelocity(w2 + (r2.Cross(impulse) * invInertia2));
-    }
+        float invMass2 = (rb2) ? rb2->GetInvMass() : 0.0f;
+        float invInertia2 = (rb2) ? rb2->GetInvInertia() : 0.0f;
 
-    position = (p1 + p2) * 0.5f;
+        if (invMass1 == 0.0f && invMass2 == 0.0f) continue;
+
+        RotMatrix rot1(obj1->transform.rotation);
+        Vec2 r1 = rot1.Rotate(attachments[0].localAnchor);
+
+        RotMatrix rot2(obj2->transform.rotation);
+        Vec2 r2 = rot2.Rotate(attachments[i].localAnchor);
+
+        Vec2 p1 = obj1->transform.position + r1;
+        Vec2 p2 = obj2->transform.position + r2;
+
+        Vec2 v1 = rb1 ? rb1->GetVelocity() : Vec2(0,0);
+        float w1 = rb1 ? rb1->GetAngularVelocity() : 0.0f;
+
+        Vec2 v2 = rb2 ? rb2->GetVelocity() : Vec2(0,0);
+        float w2 = rb2 ? rb2->GetAngularVelocity() : 0.0f;
+
+        Vec2 vp1(v1.x - w1 * r1.y, v1.y + w1 * r1.x);
+        Vec2 vp2(v2.x - w2 * r2.y, v2.y + w2 * r2.x);
+        Vec2 relative = vp2 - vp1;
+
+        Vec2 distVector = p2 - p1;
+        Vec2 biasVelocity = distVector * (Config::biasConstraint / dt);
+
+        float k11 = invMass1 + invMass2 + (r1.y * r1.y * invInertia1) + (r2.y * r2.y * invInertia2);
+        float k12 = -r1.x * r1.y * invInertia1 - r2.x * r2.y * invInertia2;
+        float k21 = k12;
+        float k22 = invMass1 + invMass2 + (r1.x * r1.x * invInertia1) + (r2.x * r2.x * invInertia2);
+
+        Matrix2x2 K(k11, k12, k21, k22);
+        Matrix2x2 invK = K.Inverse();
+
+        Vec2 targetVelocity = relative + biasVelocity;
+        Vec2 impulse = (invK * targetVelocity) * -1.0f;
+
+        if (rb1)
+        {
+            rb1->SetVelocity(v1 - impulse * invMass1);
+            rb1->SetAngularVelocity(w1 - (r1.Cross(impulse) * invInertia1));
+        }
+
+        if (rb2)
+        {
+            rb2->SetVelocity(v2 + impulse * invMass2);
+            rb2->SetAngularVelocity(w2 + (r2.Cross(impulse) * invInertia2));
+        }
+
+        position = (p1 + p2) * 0.5f;
+    }
 }

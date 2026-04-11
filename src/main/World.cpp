@@ -296,7 +296,7 @@ void World::SolveConstraints(float dt)
 
         for (auto& constraint : constraints)
         {
-            constraint->Solve(dt);
+            constraint->Solve(dt / (float)Config::impulseIterations);
         }
     }
 
