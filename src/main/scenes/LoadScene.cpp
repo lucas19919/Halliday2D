@@ -8,7 +8,6 @@
 #include <vector>
 #include <random>
 #include <unordered_map>
-#include <libraries/json/json.hpp>
 #include "main/components/constrainttypes/Distance.h"
 #include "main/components/constrainttypes/Pin.h"
 #include "main/components/constrainttypes/Joint.h"

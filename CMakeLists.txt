@@ -7,9 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Dependencies
+# --------------------------------------------------------------------------
+# Dependencies: Raylib
+# --------------------------------------------------------------------------
 set(RAYLIB_VERSION 5.5)
 find_package(raylib ${RAYLIB_VERSION} QUIET) # QUIET or REQUIRED
+
 if (NOT raylib_FOUND) # If there's none, fetch and build raylib
   include(FetchContent)
   FetchContent_Declare(
@@ -24,19 +27,41 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
   endif()
 endif()
 
-# Our Project
-
+# --------------------------------------------------------------------------
+# Our Project Sources
+# --------------------------------------------------------------------------
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-add_executable(${PROJECT_NAME} ${SOURCES})
 
+# Explicitly list ImGui sources to ensure the linker finds them
+set(IMGUI_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/rlImGui.cpp
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
+
+# --------------------------------------------------------------------------
+# Include Directories & Linking
+# --------------------------------------------------------------------------
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    include 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+)
+
+target_link_libraries(${PROJECT_NAME} raylib)
+
+# --------------------------------------------------------------------------
+# Platform Specific Configurations
+# --------------------------------------------------------------------------
+
+# Windows (MinGW) static linking
 if(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 endif()
-
-target_include_directories(${PROJECT_NAME} PRIVATE include)
-
-#set(raylib_VERBOSE 1)
-target_link_libraries(${PROJECT_NAME} raylib)
 
 # Web Configurations
 if (${PLATFORM} STREQUAL "Web")

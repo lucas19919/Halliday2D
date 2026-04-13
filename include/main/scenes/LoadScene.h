@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include <libraries/json/json.hpp>
+#include <external/nlohmann/json.hpp>
 
 class World;
 class GameObject;

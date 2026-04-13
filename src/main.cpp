@@ -1,4 +1,6 @@
 #include "raylib.h"
+#include "external/imgui/imgui.h"
+#include "external/imgui/rlImGui.h"
 #include "main/World.h"
 #include "main/GameObject.h"
 #include "main/scenes/LoadScene.h"
@@ -11,33 +13,62 @@ int main() {
     const int screenWidth = Config::screenWidth;
     const int screenHeight = Config::screenHeight;
 
+    InitWindow(screenWidth, screenHeight, "Halliday2D");
+    SetTargetFPS(Config::targetFPS);    
+
+    rlImGuiSetup(true);
+
     World world;
     InputHandler input;
 
-    //all levels under ../assets/( ... ).json
-    const std::string& filepath = "../assets/examples/Suspension.json";
-    LoadScene::Load(filepath, world, screenWidth, screenHeight);
-    
-    InitWindow(screenWidth, screenHeight, "Halliday2D");
-    SetTargetFPS(Config::targetFPS);    
+    std::string selectedFile = "";
+    char filePathBuffer[256] = "";
+
+    LoadScene::Load(selectedFile, world, screenWidth, screenHeight);
 
     //draw fps?
     bool FPS = Config::drawFPS;
 
     const float dt = 1.0f / 60.0f;
     while (!WindowShouldClose()) {
-        input.Update(world, filepath, screenWidth, screenHeight, dt);
+        input.Update(world, selectedFile, screenWidth, screenHeight, dt);
         world.Step(dt);
 
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            Render(world);
+
+            Render(world); 
             
-            if (FPS)
+            rlImGuiBegin();
+            ImGui::Begin("Physics Tools");
+            
+            ImGui::InputText("Level Path", filePathBuffer, 256);
+            
+            if (ImGui::Button("Load Level")) {
+                selectedFile = filePathBuffer;
+                world.isPaused = true;
+                world.Clear();
+                
+                LoadScene::Load(selectedFile, world, screenWidth, screenHeight);  
+          }
+
+            if (!selectedFile.empty()) {
+                ImGui::Text("Currently active file: %s", selectedFile.c_str());
+            }
+
+            ImGui::End();
+
+            rlImGuiEnd();
+            
+            if (FPS) {
                 DrawFPS(10, 10);
+            }
+        
         EndDrawing();
     }
 
+    rlImGuiShutdown();
     CloseWindow();
+
     return 0;
 }

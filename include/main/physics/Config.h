@@ -1,12 +1,13 @@
 #pragma once
 #include "math/Vec2.h"
+#include <string>
 
 struct Config
 {
     static inline int screenWidth = 1280;          
     static inline int screenHeight = 960;          
     static inline int targetFPS = 60;      
-    
+
     static inline bool drawFPS = true;
 
     static inline Vec2 gravity = Vec2(0.0f, 600.0f);
