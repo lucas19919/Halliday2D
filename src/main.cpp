@@ -22,7 +22,7 @@ int main() {
     InputHandler input;
 
     std::string selectedFile = "../assets/examples/Car.json";
-    char filePathBuffer[256] = "";
+    char filePathBuffer[256] = "../assets/examples/";
 
     LoadScene::Load(selectedFile, world, screenWidth, screenHeight);
 
