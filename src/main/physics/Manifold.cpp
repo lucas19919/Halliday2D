@@ -142,9 +142,9 @@ Array<4> Manifold::GetPolygonCircleContacts(const Array<20>& vertices1, Vec2 cen
     return points;
 }
 
-Array<20> Manifold::GetPolygonContacts(const Array<20>& vertices1, const Array<20>& vertices2, Vec2 normal)
+Array<4> Manifold::GetPolygonContacts(const Array<20>& vertices1, const Array<20>& vertices2, Vec2 normal)
 {
-    Array<20> points;
+    Array<4> points;
     
     Edge edge1 = GetSupportFace(vertices1, normal);
     Edge edge2 = GetSupportFace(vertices2, normal * -1.0f); 
