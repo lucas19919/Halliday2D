@@ -1,6 +1,7 @@
 #include "main/utility/Draw.h"
 #include "main/components/Collider.h"
 #include "main/components/Renderer.h"
+#include "main/physics/Config.h"
 #include "main/components/collidertypes/BoxCollider.h"
 #include "main/components/collidertypes/CircleCollider.h"
 #include "main/components/constrainttypes/Distance.h"

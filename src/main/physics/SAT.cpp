@@ -5,8 +5,8 @@
 
 bool SAT::TestBounds(GameObject* obj1, GameObject* obj2)
 {
-    BBox bounds1 = obj1->GetComponent<Collider>()->GetBounds();
-    BBox bounds2 = obj2->GetComponent<Collider>()->GetBounds();
+    BBox bounds1 = obj1->c->GetBounds();
+    BBox bounds2 = obj2->c->GetBounds();
 
     return !(bounds1.max.x < bounds2.min.x || bounds2.max.x < bounds1.min.x || bounds1.max.y < bounds2.min.y || bounds2.max.y < bounds1.min.y);
 }
@@ -14,7 +14,7 @@ bool SAT::TestBounds(GameObject* obj1, GameObject* obj2)
 Collision SAT::CircleCircle(GameObject *obj1, GameObject *obj2)
 {
     float distanceSq = (obj1->transform.position - obj2->transform.position).MagSq();
-    float radiusSum = static_cast<CircleCollider*>(obj1->GetComponent<Collider>())->radius + static_cast<CircleCollider*>(obj2->GetComponent<Collider>())->radius;
+    float radiusSum = static_cast<CircleCollider*>(obj1->c)->radius + static_cast<CircleCollider*>(obj2->c)->radius;
 
     if (distanceSq <= radiusSum * radiusSum) {
         if (distanceSq == 0.0f) {
@@ -32,8 +32,8 @@ Collision SAT::CircleCircle(GameObject *obj1, GameObject *obj2)
 
 Collision SAT::BoxBox(GameObject *obj1, GameObject *obj2)
 {
-    Collider* c1 = obj1->GetComponent<Collider>();
-    Collider* c2 = obj2->GetComponent<Collider>();
+    Collider* c1 = obj1->c;
+    Collider* c2 = obj2->c;
 
     const Array<20>& vertices1 = c1->GetVertices();
     const Array<20>& vertices2 = c2->GetVertices();
@@ -89,7 +89,7 @@ Collision SAT::BoxBox(GameObject *obj1, GameObject *obj2)
 Collision SAT::BoxCircle(GameObject *obj1, GameObject *obj2)
 {
     Vec2 center = obj2->transform.position;
-    Collider* c1 = obj1->GetComponent<Collider>();
+    Collider* c1 = obj1->c;
 
     const Array<20>& vertices = c1->GetVertices();
     Array<20> normals = c1->GetNormals(); 
@@ -143,7 +143,7 @@ Collision SAT::BoxCircle(GameObject *obj1, GameObject *obj2)
 Collision SAT::PolygonCircle(GameObject *obj1, GameObject *obj2)
 {
     Vec2 center = obj2->transform.position;
-    Collider* c1 = obj1->GetComponent<Collider>();
+    Collider* c1 = obj1->c;
     
     const Array<20>& vertices = c1->GetVertices();
     Array<20> normals = c1->GetNormals(); 
@@ -201,8 +201,8 @@ Collision SAT::PolygonBox(GameObject *obj1, GameObject *obj2)
 
 Collision SAT::PolygonPolygon(GameObject *obj1, GameObject *obj2)
 {
-    Collider* c1 = obj1->GetComponent<Collider>();
-    Collider* c2 = obj2->GetComponent<Collider>();
+    Collider* c1 = obj1->c;
+    Collider* c2 = obj2->c;
 
     const Array<20>& vertices1 = c1->GetVertices();
     const Array<20>& vertices2 = c2->GetVertices();
@@ -258,7 +258,7 @@ Collision SAT::PolygonPolygon(GameObject *obj1, GameObject *obj2)
 SAT::Projection SAT::CircleProject(GameObject* obj, const Vec2 axis)
 {
     float centerDot = obj->transform.position.Dot(axis);
-    CircleCollider* c = static_cast<CircleCollider*>(obj->GetComponent<Collider>());
+    CircleCollider* c = static_cast<CircleCollider*>(obj->c);
     return { centerDot - c->radius, centerDot + c->radius };
 }
 

@@ -19,7 +19,7 @@ ConstraintType MotorConstraint::GetType() const
 //NOTE: this means that if you dont have a rigidbody, bodies will rotate through other objects 
 void MotorConstraint::Solve(float dt)
 {
-    RigidBody* rb = rotor->GetComponent<RigidBody>();
+    RigidBody* rb = rotor->rb;
 
     if (!rb)
     {

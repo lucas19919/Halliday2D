@@ -58,6 +58,7 @@ Array<20> Renderer::UpdateWorldCoordinates(Vec2 position, float rotation)
     for (size_t i = 0; i < localCoordinates.Size(); i++)
     {
         Vec2 vertex = localCoordinates[i];
+        Vec2 rotated = rot.Rotate(vertex);
         worldCoordinates.PushBack(Vec2(rotated.x + position.x, rotated.y + position.y));
     }
 

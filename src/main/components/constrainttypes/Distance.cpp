@@ -16,8 +16,8 @@ ConstraintType DistanceConstraint::GetType() const
 
 void DistanceConstraint::Solve(float dt)
 {
-    RigidBody* rb1 = anchor->GetComponent<RigidBody>();
-    RigidBody* rb2 = attached->GetComponent<RigidBody>();
+    RigidBody* rb1 = anchor->rb;
+    RigidBody* rb2 = attached->rb;
 
     float invMass1 = (rb1) ? rb1->GetInvMass() : 0.0f;
     float invMass2 = (rb2) ? rb2->GetInvMass() : 0.0f;
