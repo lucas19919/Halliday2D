@@ -8,6 +8,8 @@ ColliderType BoxCollider::GetType() const
     return ColliderType::BOX;
 }
 
+#include "math/RotationMatrix.h"
+
 void BoxCollider::UpdateCache(const TransformComponent& transform)
 {
     cachedVertices.count = 0;
@@ -20,15 +22,12 @@ void BoxCollider::UpdateCache(const TransformComponent& transform)
         Vec2(-x, -y), Vec2( x, -y), Vec2( x,  y), Vec2(-x,  y)
     };
 
-    float cos = std::cos(transform.rotation);
-    float sin = std::sin(transform.rotation);
+    RotMatrix rot(transform.rotation);
 
     for (int i = 0; i < 4; i++)
     {
-        cachedVertices.PushBack(Vec2(
-            (local[i].x * cos) - (local[i].y * sin) + transform.position.x,
-            (local[i].x * sin) + (local[i].y * cos) + transform.position.y
-        ));
+        Vec2 rotated = rot.Rotate(local[i]);
+        cachedVertices.PushBack(rotated + transform.position);
     }
 
     // Update normals

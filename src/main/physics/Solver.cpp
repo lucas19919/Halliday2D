@@ -115,13 +115,11 @@ Vec2 Solver::GetImpulse(ContactConstraint& contact, int index)
     
     float jn = 0.0f;
     if (denominator > 0.0f)
-    {
         jn = (bias - magnitude) / denominator;
-        jn /= (float)contact.pointCount;
-    }
 
     if (tangent.MagSq() > 0.0001f)
         tangent = tangent.Norm();
+        
     else return Vec2();
 
     float crossT1 = r1.Cross(tangent);
