@@ -55,22 +55,22 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
         Instantiate()
             .WithTransform(Vec2(screenWidth / 2.0f, screenHeight + 100.0f), 0.0f)
             .WithCollider(ColliderType::BOX, Vec2(screenWidth, 200.0f))
-            .Create(world, -1);
+            .Create(world, 9000);
 
         Instantiate()
             .WithTransform(Vec2(screenWidth / 2.0f, -100.0f), 0.0f)
             .WithCollider(ColliderType::BOX, Vec2(screenWidth, 200.0f))
-            .Create(world, -1);
+            .Create(world, 9001);
 
         Instantiate()
             .WithTransform(Vec2(-100.0f, screenHeight / 2.0f), 0.0f)
             .WithCollider(ColliderType::BOX, Vec2(200.0f, screenHeight))
-            .Create(world, -1);
+            .Create(world, 9002);
 
         Instantiate()
             .WithTransform(Vec2(screenWidth + 100.0f, screenHeight / 2.0f), 0.0f)
             .WithCollider(ColliderType::BOX, Vec2(200.0f, screenHeight))
-            .Create(world, -1);
+            .Create(world, 9003);
     }
 
     std::unordered_map<int, GameObject*> idMap;

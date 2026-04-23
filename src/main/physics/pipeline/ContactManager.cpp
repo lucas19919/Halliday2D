@@ -1,6 +1,8 @@
 #include "main/physics/pipeline/ContactManager.h"
 #include "main/physics/ManifoldHandler.h"
 #include "main/physics/Solver.h"
+#include "main/utility/Draw.h"
+#include "main/physics/Config.h"
 
 void ContactManager::PrepareFrame()
 {

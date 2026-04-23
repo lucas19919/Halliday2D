@@ -17,7 +17,9 @@ class Broadphase
 
         void UpdateBroadphase(std::vector<std::unique_ptr<GameObject>>& gameObjects);
         std::vector<std::pair<GameObject*, GameObject*>> GeneratePairs();
-    private:
+        const SpatialHash& GetSpatialHash() const { return spatialHash; }
+
+        private:
         SpatialHash spatialHash;
         std::unordered_map<unsigned int, std::vector<GameObject*>> gridMap;
         std::unordered_set<uint64_t> candidatePairKeys;

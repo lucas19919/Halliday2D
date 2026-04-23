@@ -14,6 +14,8 @@ struct Array
             count++;
         }
     }
+
+    void Clear() { count = 0; }
     
     Vec2& operator[](size_t i) { return data[i]; }
     const Vec2& operator[](size_t i) const { return data[i]; }

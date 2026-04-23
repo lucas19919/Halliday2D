@@ -31,6 +31,8 @@ class Collider : public Component
         BBox GetBounds() const { return bounds; }
         void SetBounds(const BBox& newBounds) { bounds = newBounds; }
 
+        virtual bool IsPointInside(Vec2 point) const = 0;
+
         bool isActive = true;
         void Toggle();
 

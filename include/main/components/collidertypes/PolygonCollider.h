@@ -11,4 +11,6 @@ class PolygonCollider : public Collider
         ColliderType GetType() const override;
 
         void UpdateCache(const TransformComponent& transform) override;
+
+        bool IsPointInside(Vec2 point) const override;
 };
