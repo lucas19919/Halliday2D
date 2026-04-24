@@ -40,7 +40,7 @@ int main() {
         world.Step(dt);
 
         BeginDrawing();
-            ClearBackground(DARKGRAY);
+            ClearBackground(GRAY);
 
             camera.Begin();
                 Render(world, camera); 
@@ -70,6 +70,13 @@ int main() {
             ImGui::Text("Zoom: %.2fx", camera.GetRaylibCamera().zoom);
             Vec2 mousePos = input.GetMouseWorldPos();
             ImGui::Text("Mouse World (m): %.2f, %.2f", mousePos.x, mousePos.y);
+
+            ImGui::Separator();
+            ImGui::Text("Timing:");
+            ImGui::Text("Integrate Velocity Time: %.2f ms", world.integrateVelocityTime);
+            ImGui::Text("Integrate Position Time: %.2f ms", world.integratePositionTime);
+            ImGui::Text("Broadphase Time: %.2f ms", world.broadphaseTime);
+            ImGui::Text("Solver Time: %.2f ms", world.solverTime);
 
             ImGui::End();
 

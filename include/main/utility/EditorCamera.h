@@ -12,10 +12,7 @@ public:
     void Pan(Vector2 delta);
     void Zoom(float delta, Vector2 mousePos);
 
-    // Convert Screen Pixels -> World Meters
     Vec2 ScreenToWorldMeters(Vector2 screenPos) const;
-    
-    // Convert World Meters -> Screen Pixels
     Vector2 WorldToScreenPixels(Vec2 worldPos) const;
 
     const Camera2D& GetRaylibCamera() const { return camera; }

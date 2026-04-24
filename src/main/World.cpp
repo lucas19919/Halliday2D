@@ -3,12 +3,12 @@
 #include "math/Vec2.h"
 #include "main/physics/Config.h"
 
-
 World::World()
 { 
     integrate = std::make_unique<Integrate>();
     broadphase = std::make_unique<Broadphase>();
     contactManager = std::make_unique<ContactManager>();
+    timer = Timer();
 }
 
 std::vector<std::unique_ptr<GameObject>>& World::GetGameObjects()
@@ -40,6 +40,8 @@ void World::Clear()
     integrate.reset();
     broadphase->Clear();
     contactManager->Clear();
+
+    timer.~Timer();
 }
 
 //step world forward by dt seconds
@@ -49,17 +51,29 @@ void World::Step(float dt)
 
     int subTicks = Config::pipelineSubTicks;
     float subDt = dt / subTicks;
+
     for (int i = 0; i < subTicks; i++)
     {
         //frame subtick begin
         contactManager->PrepareFrame();
 
+        timer.StartTimer();
         integrate->IntegrateVelocity(gameObjects, subDt);
+        integrateVelocityTime = timer.StopTimer();
+
+        timer.StartTimer();
         broadphase->UpdateBroadphase(gameObjects); 
         contactManager->BuildContacts(broadphase->GeneratePairs());
+        broadphaseTime = timer.StopTimer();
+
+        timer.StartTimer();
         contactManager->PrepareContacts(subDt);
         contactManager->SolveConstraints(constraints, subDt);
+        solverTime = timer.StopTimer();
+
+        timer.StartTimer();
         integrate->IntegratePosition(gameObjects, subDt);
+        integratePositionTime = timer.StopTimer();
 
         contactManager->FinishFrame();  
         //end subtick frame      

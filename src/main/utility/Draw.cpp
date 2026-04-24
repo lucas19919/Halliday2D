@@ -170,21 +170,17 @@ void Render(World& world, const EditorCamera& camera)
         }
     }
 
-    // Draw selection highlight at the very end to ensure it is on top
     if (selected && selected->c)
     {
-        // Ensure collider cache is up to date for the highlight even if physics is paused
         if (selected->transform.isDirty)
         {
             selected->c->UpdateCache(selected->transform);
-            // Note: we don't clear isDirty here as the broadphase needs to see it too
         }
 
         if (selected->c->GetType() == ColliderType::CIRCLE)
         {
             float radius = ToScreen(static_cast<CircleCollider*>(selected->c)->radius);
             Vector2 pos = ToScreen(selected->transform.position);
-            // Dynamic thickness to keep highlight consistent on screen, no gap
             DrawRing(pos, radius, radius + thickness, 0.0f, 360.0f, 36, ORANGE);
         }
         else
@@ -194,7 +190,6 @@ void Render(World& world, const EditorCamera& camera)
             {
                 Vector2 p1 = ToScreen(vertices[i]);
                 Vector2 p2 = ToScreen(vertices[(i + 1) % vertices.Size()]);
-                // Dynamic thickness for lines
                 DrawLineEx(p1, p2, thickness, ORANGE);
             }
         }
@@ -215,40 +210,54 @@ void GizmoRender(const EditorCamera& camera)
     float handleLength = 100.0f;
     float thickness = 4.0f;
 
-    if (type == GizmoType::TRANSLATE)
+    switch (type)
     {
-        Color colorX = (hovered == GizmoAxis::X || active == GizmoAxis::X) ? YELLOW : RED;
-        Color colorY = (hovered == GizmoAxis::Y || active == GizmoAxis::Y) ? YELLOW : GREEN;
-        Color colorBoth = (hovered == GizmoAxis::BOTH || active == GizmoAxis::BOTH) ? YELLOW : BLUE;
-
-        // X Axis
-        DrawLineEx(origin, { origin.x + handleLength, origin.y }, thickness, colorX);
-        DrawTriangle({ origin.x + handleLength + 15, origin.y }, 
-                     { origin.x + handleLength, origin.y - 7 }, 
-                     { origin.x + handleLength, origin.y + 7 }, colorX);
-
-        // Y Axis
-        DrawLineEx(origin, { origin.x, origin.y + handleLength }, thickness, colorY);
-        DrawTriangle({ origin.x, origin.y + handleLength + 15 }, 
-                     { origin.x + 7, origin.y + handleLength }, 
-                     { origin.x - 7, origin.y + handleLength }, colorY);
-
-        // Center handle
-        DrawRectangleV({ origin.x - 8, origin.y - 8 }, { 16, 16 }, colorBoth);
-        DrawRectangleLinesEx({ origin.x - 8, origin.y - 8, 16, 16 }, 1.0f, BLACK);
-    }
-    else if (type == GizmoType::ROTATE)
-    {
-        float radius = 80.0f;
-        Color colorBoth = (hovered == GizmoAxis::BOTH || active == GizmoAxis::BOTH) ? YELLOW : BLUE;
-        DrawCircleLinesV(origin, radius, colorBoth);
-        DrawCircleV(origin, 5.0f, colorBoth);
-        
-        // Draw a line to current mouse if active
-        if (active == GizmoAxis::BOTH)
+        case GizmoType::TRANSLATE :
         {
-            DrawLineV(origin, GetMousePosition(), LIGHTGRAY);
+            Color colorX = (hovered == GizmoAxis::X || active == GizmoAxis::X) ? YELLOW : RED;
+            Color colorY = (hovered == GizmoAxis::Y || active == GizmoAxis::Y) ? YELLOW : GREEN;
+            Color colorBoth = (hovered == GizmoAxis::BOTH || active == GizmoAxis::BOTH) ? YELLOW : BLUE;
+
+            // X Axis
+            DrawLineEx(origin, { origin.x + handleLength, origin.y }, thickness, colorX);
+            DrawTriangle({ origin.x + handleLength + 15, origin.y }, 
+                        { origin.x + handleLength, origin.y - 7 }, 
+                        { origin.x + handleLength, origin.y + 7 }, colorX);
+
+            // Y Axis
+            DrawLineEx(origin, { origin.x, origin.y + handleLength }, thickness, colorY);
+            DrawTriangle({ origin.x, origin.y + handleLength + 15 }, 
+                        { origin.x + 7, origin.y + handleLength }, 
+                        { origin.x - 7, origin.y + handleLength }, colorY);
+
+            // Center handle
+            DrawRectangleV({ origin.x - 8, origin.y - 8 }, { 16, 16 }, colorBoth);
+            DrawRectangleLinesEx({ origin.x - 8, origin.y - 8, 16, 16 }, 1.0f, BLACK);
+
+            break;
         }
+        case GizmoType::ROTATE :
+        {
+            float radius = 80.0f;
+            Color colorBoth = (hovered == GizmoAxis::BOTH || active == GizmoAxis::BOTH) ? YELLOW : BLUE;
+            DrawCircleLinesV(origin, radius, colorBoth);
+            DrawCircleV(origin, 5.0f, colorBoth);
+            
+            // Draw a line to current mouse if active
+            if (active == GizmoAxis::BOTH)
+            {
+                DrawLineV(origin, GetMousePosition(), LIGHTGRAY);
+            }
+
+            break;
+        }
+        case GizmoType::SCALE :
+        {
+
+            break;
+        }
+        default:
+            break;
     }
 }
 

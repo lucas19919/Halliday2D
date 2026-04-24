@@ -1,13 +1,11 @@
 #pragma once
-
 #include "main/GameObject.h"
 #include "main/components/Constraint.h"
 #include "main/components/Controller.h"
-
 #include "main/physics/pipeline/Broadphase.h"
 #include "main/physics/pipeline/Integrate.h"
 #include "main/physics/pipeline/ContactManager.h"
-
+#include "main/utility/Timer.h"
 #include <vector>
 #include <memory>
 #include "math/Vec2.h"
@@ -46,4 +44,12 @@ class World
         std::vector<std::unique_ptr<GameObject>> gameObjects;
         std::vector<std::unique_ptr<Constraint>> constraints;
         std::vector<std::unique_ptr<Controller>> controllers;
+
+        //timing
+        Timer timer;
+    public:
+        float integrateVelocityTime = 0.0f;
+        float integratePositionTime = 0.0f;
+        float broadphaseTime = 0.0f;
+        float solverTime = 0.0f;
 };

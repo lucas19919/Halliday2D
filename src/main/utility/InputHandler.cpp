@@ -58,13 +58,17 @@ void InputHandler::Update(World& world, EditorCamera& camera, const std::string&
         LoadScene::Load(filePath, world, screenWidth, screenHeight);
     }
 
-    if (IsKeyPressed(KEY_W))
+    if (IsKeyPressed(KEY_G))
     {
         EditorState::Get().SetGizmoType(GizmoType::TRANSLATE);
     }
     if (IsKeyPressed(KEY_E))
     {
         EditorState::Get().SetGizmoType(GizmoType::ROTATE);
+    }
+    if (IsKeyPressed(KEY_S))
+    {
+        EditorState::Get().SetGizmoType(GizmoType::SCALE);
     }
 
     for (const auto& c : world.GetControllers())
