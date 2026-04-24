@@ -5,10 +5,15 @@
 #include "main/editor/HierarchyPanel.h"
 #include "main/editor/InspectorPanel.h"
 #include "main/editor/DebugPanel.h"
+#include "main/editor/ThemeManager.h"
+#include "main/editor/FileDialog.h"
 #include "external/imgui/imgui.h"
 #include "external/imgui/imgui_internal.h"
 #include "external/imgui/rlImGui.h"
 #include "main/physics/Config.h"
+#include "main/scenes/LoadScene.h"
+#include "main/scenes/SaveScene.h"
+#include "main/editor/EditorState.h"
 
 namespace Editor {
 
@@ -19,6 +24,8 @@ Editor::Editor(World& world, EditorCamera& camera, InputHandler& input) {
     panels.push_back(std::make_unique<InspectorPanel>());
     panels.push_back(std::make_unique<DebugPanel>());
     panels.push_back(std::make_unique<ScenePanel>(Config::screenWidth, Config::screenHeight));
+
+    ThemeManager::ApplyTheme(EditorTheme::Retro);
 }
 
 Editor::~Editor() {
@@ -27,105 +34,134 @@ Editor::~Editor() {
 void Editor::Update(World& world) {
     rlImGuiBegin();
 
-    static bool opt_fullscreen = true;
-    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    if (opt_fullscreen)
-    {
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        if (viewport) {
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
+    // shortcuts
+    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
+        if (!EditorState::Get().GetActiveScenePath().empty()) {
+            SaveScene::Save(EditorState::Get().GetActiveScenePath(), world);
+        } else {
+            std::string path = ShowFileDialog(true);
+            if (!path.empty()) {
+                EditorState::Get().SetActiveScenePath(path);
+                SaveScene::Save(path, world);
+            }
         }
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
 
-    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-        window_flags |= ImGuiWindowFlags_NoBackground;
+    // root dockspace
+    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("MainDockSpace", nullptr, window_flags);
-    ImGui::PopStyleVar();
-
-    if (opt_fullscreen)
-        ImGui::PopStyleVar(2);
-
-    ImGuiIO& io = ImGui::GetIO();
-    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-    
     static bool resetLayout = false;
-    
-    // Only build layout if it doesn't exist (no .ini file) or user requested a reset
-    // Ensure viewport size is valid before building
-    if ((!ImGui::DockBuilderGetNode(dockspace_id) || resetLayout) && ImGui::GetMainViewport()->WorkSize.x > 0) {
+    static bool firstFrame = true;
+
+    if ((firstFrame || resetLayout) && dockspace_id != 0) {
+        firstFrame = false;
         resetLayout = false;
 
-        ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
-        ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderRemoveNode(dockspace_id);
+        ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
 
-        // Split Left (0.2)
         ImGuiID dock_id_main = dockspace_id;
         ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Left, 0.20f, nullptr, &dock_id_main);
-        // Split Right (0.25)
         ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Right, 0.25f, nullptr, &dock_id_main);
-        // Split Bottom Center
-        ImGuiID dock_id_bottom_center = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.25f, nullptr, &dock_id_main);
+        ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.25f, nullptr, &dock_id_main);
         
-        // Split Bottom Left
         ImGuiID dock_id_bottom_left = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Down, 0.30f, nullptr, &dock_id_left);
-        // Split Bottom Right
-        ImGuiID dock_id_bottom_right = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.50f, nullptr, &dock_id_right);
+        ImGuiID dock_id_bottom_right = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.40f, nullptr, &dock_id_right);
 
-        // Assign panels to slots
         ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
         ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
         ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
         ImGui::DockBuilderDockWindow("Performance & Viewport", dock_id_bottom_left);
         ImGui::DockBuilderDockWindow("Debug Settings", dock_id_bottom_right);
-        ImGui::DockBuilderDockWindow("Scene Manager", dock_id_bottom_center);
+        ImGui::DockBuilderDockWindow("Scene Manager", dock_id_bottom);
         
         ImGui::DockBuilderFinish(dockspace_id);
     }
 
-    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-    {
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    }
-
-    if (ImGui::BeginMenuBar())
+    if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Exit")) { /* Handle exit */ }
+            if (ImGui::MenuItem("Load")) {
+                std::string path = ShowFileDialog(false);
+                if (!path.empty()) {
+                    EditorState::Get().SetSelected(nullptr);
+                    EditorState::Get().SetActiveScenePath(path);
+                    world.isPaused = true;
+                    LoadScene::Load(path, world, Config::screenWidth, Config::screenHeight);
+                }
+            }
+            if (ImGui::MenuItem("Save", "Ctrl+S")) {
+                if (!EditorState::Get().GetActiveScenePath().empty()) {
+                    SaveScene::Save(EditorState::Get().GetActiveScenePath(), world);
+                } else {
+                    std::string path = ShowFileDialog(true);
+                    if (!path.empty()) {
+                        EditorState::Get().SetActiveScenePath(path);
+                        SaveScene::Save(path, world);
+                    }
+                }
+            }
+            if (ImGui::MenuItem("Save As")) {
+                std::string path = ShowFileDialog(true);
+                if (!path.empty()) {
+                    EditorState::Get().SetActiveScenePath(path);
+                    SaveScene::Save(path, world);
+                }
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit")) { /* ... */ }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Theme"))
+        {
+            if (ImGui::MenuItem("Retro")) ThemeManager::ApplyTheme(EditorTheme::Retro);
+            if (ImGui::MenuItem("Dark"))  ThemeManager::ApplyTheme(EditorTheme::Dark);
+            if (ImGui::MenuItem("Light")) ThemeManager::ApplyTheme(EditorTheme::Light);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Window"))
         {
-            if (ImGui::MenuItem("Reset Layout"))
-            {
-                resetLayout = true;
-            }
+            if (ImGui::MenuItem("Reset Layout")) resetLayout = true;
             ImGui::Separator();
             for (auto& panel : panels)
-            {
                 ImGui::MenuItem(panel->GetName(), nullptr, &panel->isOpen);
-            }
             ImGui::EndMenu();
         }
-        ImGui::EndMenuBar();
+
+        // playbar
+        float barWidth = ImGui::GetWindowWidth();
+        float btnW = 30.0f;
+        float groupW = (btnW * 3.0f) + (ImGui::GetStyle().ItemSpacing.x * 2.0f);
+        ImGui::SetCursorPosX((barWidth - groupW) * 0.5f);
+        
+        if (world.isPaused) {
+            if (ImGui::Button(">", ImVec2(btnW, 0))) world.isPaused = false;
+        } else {
+            if (ImGui::Button("||", ImVec2(btnW, 0))) world.isPaused = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("|>", ImVec2(btnW, 0))) {
+            world.isPaused = false;
+            world.Step(1.0f / 60.0f);
+            world.isPaused = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("R", ImVec2(btnW, 0))) {
+            if (!EditorState::Get().GetActiveScenePath().empty()) {
+                EditorState::Get().SetSelected(nullptr);
+                world.isPaused = true;
+                world.Clear();
+                LoadScene::Load(EditorState::Get().GetActiveScenePath(), world, Config::screenWidth, Config::screenHeight);
+            }
+        }
+        ImGui::EndMainMenuBar();
     }
 
     for (auto& panel : panels) {
         panel->OnImGui(world);
     }
-
-    ImGui::End(); // End DockSpace window
 
     rlImGuiEnd();
 }

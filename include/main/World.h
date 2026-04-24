@@ -30,6 +30,8 @@ class World
 
         const std::vector<ContactConstraint>& GetContacts() const { return contactManager->GetContacts(); }
 
+        const std::unordered_map<unsigned int, std::vector<GameObject*>>& GetSpatialGrid() const { return broadphase->GetGridMap(); }
+
         void SetWorldSize(Vec2 size) { worldSize = size; }
         Vec2 GetWorldSize() const { return worldSize; }
 

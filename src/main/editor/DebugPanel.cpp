@@ -1,6 +1,7 @@
 #include "main/editor/DebugPanel.h"
 #include "external/imgui/imgui.h"
 #include "main/physics/Config.h"
+#include "main/editor/ThemeManager.h"
 
 namespace Editor {
 
@@ -12,7 +13,9 @@ void DebugPanel::OnImGui(World& world) {
     if (ImGui::CollapsingHeader("Simulation", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("Paused", &world.isPaused);
         if (ImGui::Button("Step Frame")) {
+            world.isPaused = false;
             world.Step(1.0f / 60.0f);
+            world.isPaused = true;
         }
     }
 
@@ -31,6 +34,12 @@ void DebugPanel::OnImGui(World& world) {
         ImGui::Checkbox("Draw Contact Points", &Config::drawContactPoints);
         ImGui::Checkbox("Draw Velocity", &Config::drawVelocity);
         ImGui::Checkbox("Draw Acceleration", &Config::drawAcceleration);
+        
+        const char* hashModes[] = { "None", "Grid", "Active Cells" };
+        int currentMode = (int)Config::spatialHashMode;
+        if (ImGui::Combo("Spatial Hash", &currentMode, hashModes, IM_COUNTOF(hashModes))) {
+            Config::spatialHashMode = (Config::SpatialHashMode)currentMode;
+        }
     }
 
     ImGui::End();

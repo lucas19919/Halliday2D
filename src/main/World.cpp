@@ -41,13 +41,10 @@ void World::Clear()
     constraints.clear();
     controllers.clear();  
 
-    integrate.reset();
     broadphase->Clear();
     contactManager->Clear();
 
     nextID = 0;
-
-    timer.~Timer();
 }
 
 //step world forward by dt seconds

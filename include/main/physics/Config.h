@@ -14,6 +14,9 @@ struct Config
     static inline bool drawVelocity = false;
     static inline bool drawAcceleration = false;
     static inline bool drawAABB = false;
+    
+    enum class SpatialHashMode { None, Grid, ActiveCells };
+    static inline SpatialHashMode spatialHashMode = SpatialHashMode::None;
 
     static constexpr float MeterToPixel = 50.0f;
     static constexpr float PixelToMeter = 1.0f / MeterToPixel;

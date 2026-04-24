@@ -10,7 +10,7 @@ void InputHandler::Update(World& world, EditorCamera& camera, const std::string&
     EditorState& state = EditorState::Get();
 
     // Ignore input if ImGui is capturing, UNLESS it's the viewport
-    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse && !state.IsViewportHovered()) return;
+    if (ImGui::GetCurrentContext() != nullptr && (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) && !state.IsViewportHovered()) return;
 
     // Update mouse position in physics world using viewport-relative coordinates
     physicsMousePos = camera.ScreenToWorldMeters(state.GetViewportMousePos());
@@ -55,22 +55,25 @@ void InputHandler::Update(World& world, EditorCamera& camera, const std::string&
     {
         world.isPaused = !world.isPaused;
     }
+
+    // Reset Logic
     if (IsKeyPressed(KEY_R))
     {
+        EditorState::Get().SetSelected(nullptr); 
         world.isPaused = true;
         world.Clear();
         LoadScene::Load(filePath, world, screenWidth, screenHeight);
     }
 
-    if (IsKeyPressed(KEY_G))
+    if (IsKeyPressed(KEY_G) && !IsKeyDown(KEY_LEFT_CONTROL) && !IsKeyDown(KEY_RIGHT_CONTROL))
     {
         EditorState::Get().SetGizmoType(GizmoType::TRANSLATE);
     }
-    if (IsKeyPressed(KEY_E))
+    if (IsKeyPressed(KEY_E) && !IsKeyDown(KEY_LEFT_CONTROL) && !IsKeyDown(KEY_RIGHT_CONTROL))
     {
         EditorState::Get().SetGizmoType(GizmoType::ROTATE);
     }
-    if (IsKeyPressed(KEY_S))
+    if (IsKeyPressed(KEY_S) && !IsKeyDown(KEY_LEFT_CONTROL) && !IsKeyDown(KEY_RIGHT_CONTROL))
     {
         EditorState::Get().SetGizmoType(GizmoType::SCALE);
     }
