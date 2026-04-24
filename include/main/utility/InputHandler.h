@@ -3,7 +3,7 @@
 #include <string>
 #include "main/scenes/LoadScene.h"
 #include "main/components/Controller.h"
-#include "main/utility/EditorCamera.h"
+#include "main/editor/EditorCamera.h"
 
 class InputHandler
 {

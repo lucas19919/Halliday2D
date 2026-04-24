@@ -7,7 +7,9 @@
 #include "main/utility/Draw.h"
 #include "main/utility/InputHandler.h"
 #include "main/physics/Config.h"
-#include "main/utility/EditorCamera.h"
+#include "main/editor/EditorCamera.h"
+#include "main/editor/EditorState.h"
+#include "main/editor/Editor.h"
 #include <string>
 
 int main() {
@@ -22,18 +24,16 @@ int main() {
     World world;
     InputHandler input;
     EditorCamera camera((float)screenWidth, (float)screenHeight);
+    Editor::Editor editor(world, camera, input);
 
-    std::string selectedFile = "../assets/examples/PrattTruss.json";
-    char filePathBuffer[256] = "../assets/examples/";
-
-    LoadScene::Load(selectedFile, world, screenWidth, screenHeight);
+    LoadScene::Load(EditorState::Get().GetActiveScenePath(), world, screenWidth, screenHeight);
 
     //draw fps?
     bool FPS = Config::drawFPS;
 
     const float dt = 1.0f / 60.0f;
     while (!WindowShouldClose()) {
-        input.Update(world, camera, selectedFile, screenWidth, screenHeight, dt);
+        input.Update(world, camera, EditorState::Get().GetActiveScenePath(), screenWidth, screenHeight, dt);
         
         GizmoUpdate(camera);
 
@@ -48,39 +48,7 @@ int main() {
             
             GizmoRender(camera);
 
-            rlImGuiBegin();
-            ImGui::Begin("Physics Tools");
-            
-            ImGui::InputText("Level Path", filePathBuffer, 256);
-            
-            if (ImGui::Button("Load Level")) {
-                selectedFile = filePathBuffer;
-                world.isPaused = true;
-                world.Clear();
-                
-                LoadScene::Load(selectedFile, world, screenWidth, screenHeight);  
-            }
-
-            if (!selectedFile.empty()) {
-                ImGui::Text("Currently active file: %s", selectedFile.c_str());
-            }
-
-            ImGui::Separator();
-            ImGui::Text("Viewport Info:");
-            ImGui::Text("Zoom: %.2fx", camera.GetRaylibCamera().zoom);
-            Vec2 mousePos = input.GetMouseWorldPos();
-            ImGui::Text("Mouse World (m): %.2f, %.2f", mousePos.x, mousePos.y);
-
-            ImGui::Separator();
-            ImGui::Text("Timing:");
-            ImGui::Text("Integrate Velocity Time: %.2f ms", world.integrateVelocityTime);
-            ImGui::Text("Integrate Position Time: %.2f ms", world.integratePositionTime);
-            ImGui::Text("Broadphase Time: %.2f ms", world.broadphaseTime);
-            ImGui::Text("Solver Time: %.2f ms", world.solverTime);
-
-            ImGui::End();
-
-            rlImGuiEnd();
+            editor.Update(world);
             
             if (FPS) {
                 DrawFPS(10, 10);

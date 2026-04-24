@@ -1,7 +1,7 @@
 #include "main/utility/InputHandler.h"
 #include "main/components/Controller.h"
 #include "main/physics/Config.h"
-#include "main/utility/EditorState.h"
+#include "main/editor/EditorState.h"
 #include "raylib.h"
 #include "external/imgui/imgui.h"
 

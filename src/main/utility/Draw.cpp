@@ -8,7 +8,7 @@
 #include "main/components/constrainttypes/Pin.h"
 #include "main/components/constrainttypes/Joint.h"
 #include "main/components/constrainttypes/Motor.h"
-#include "main/utility/EditorState.h"
+#include "main/editor/EditorState.h"
 #include <cmath>
 #include "math/RotationMatrix.h"
 #include "raymath.h"
