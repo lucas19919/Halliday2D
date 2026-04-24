@@ -14,7 +14,7 @@ ScenePanel::ScenePanel(int screenWidth, int screenHeight)
 void ScenePanel::OnImGui(World& world) {
     if (!isOpen) return;
 
-    ImGui::Begin("Scene Manager", &isOpen);
+    ImGui::Begin(GetName(), &isOpen);
     
     ImGui::InputText("Level Path", filePathBuffer, 256);
     

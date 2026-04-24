@@ -7,17 +7,19 @@
 
 void InputHandler::Update(World& world, EditorCamera& camera, const std::string& filePath, int screenWidth, int screenHeight, float dt)
 {
-    // Ignore input if ImGui is capturing
-    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse) return;
+    EditorState& state = EditorState::Get();
 
-    // Update mouse position in physics world
-    physicsMousePos = camera.ScreenToWorldMeters(GetMousePosition());
+    // Ignore input if ImGui is capturing, UNLESS it's the viewport
+    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse && !state.IsViewportHovered()) return;
+
+    // Update mouse position in physics world using viewport-relative coordinates
+    physicsMousePos = camera.ScreenToWorldMeters(state.GetViewportMousePos());
 
     // Selection logic
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && state.IsViewportHovered())
     {
         // Don't change selection if clicking on a gizmo
-        if (!EditorState::Get().IsGizmoHovered() && !EditorState::Get().IsGizmoActive())
+        if (!state.IsGizmoHovered() && !state.IsGizmoActive())
         {
             GameObject* hit = nullptr;
             // Iterate backwards to select "top" objects first if they overlap
@@ -38,13 +40,15 @@ void InputHandler::Update(World& world, EditorCamera& camera, const std::string&
     // Camera Controls
     if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE))
     {
-        camera.Pan(GetMouseDelta());
+        Vector2 delta = GetMouseDelta();
+        camera.Pan(Vec2(delta.x, delta.y));
     }
 
     float wheel = GetMouseWheelMove();
     if (wheel != 0)
     {
-        camera.Zoom(wheel, GetMousePosition());
+        Vector2 m = GetMousePosition();
+        camera.Zoom(wheel, Vec2(m.x, m.y));
     }
 
     if (IsKeyPressed(KEY_SPACE))

@@ -9,11 +9,11 @@ public:
     void Begin();
     void End();
 
-    void Pan(Vector2 delta);
-    void Zoom(float delta, Vector2 mousePos);
+    void Pan(Vec2 delta);
+    void Zoom(float delta, Vec2 mousePos);
 
-    Vec2 ScreenToWorldMeters(Vector2 screenPos) const;
-    Vector2 WorldToScreenPixels(Vec2 worldPos) const;
+    Vec2 ScreenToWorldMeters(Vec2 screenPos) const;
+    Vec2 WorldToScreenPixels(Vec2 worldPos) const;
 
     const Camera2D& GetRaylibCamera() const { return camera; }
     Camera2D& GetRaylibCamera() { return camera; }

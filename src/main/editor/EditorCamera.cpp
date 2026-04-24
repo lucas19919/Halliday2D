@@ -17,16 +17,18 @@ void EditorCamera::End() {
     EndMode2D();
 }
 
-void EditorCamera::Pan(Vector2 delta) {
+void EditorCamera::Pan(Vec2 delta) {
     // Scaling delta by 1/zoom so panning feels consistent at all zoom levels
-    camera.target = Vector2Add(camera.target, Vector2Scale(delta, -1.0f / camera.zoom));
+    Vector2 d = { delta.x, delta.y };
+    camera.target = Vector2Add(camera.target, Vector2Scale(d, -1.0f / camera.zoom));
 }
 
-void EditorCamera::Zoom(float delta, Vector2 mousePos) {
+void EditorCamera::Zoom(float delta, Vec2 mousePos) {
     // Zoom around mouse position
-    Vector2 mouseWorldPos = GetScreenToWorld2D(mousePos, camera);
+    Vector2 m = { mousePos.x, mousePos.y };
+    Vector2 mouseWorldPos = GetScreenToWorld2D(m, camera);
     
-    camera.offset = mousePos;
+    camera.offset = m;
     camera.target = mouseWorldPos;
 
     float scaleFactor = 1.1f;
@@ -37,12 +39,14 @@ void EditorCamera::Zoom(float delta, Vector2 mousePos) {
     if (camera.zoom > 10.0f) camera.zoom = 10.0f;
 }
 
-Vec2 EditorCamera::ScreenToWorldMeters(Vector2 screenPos) const {
-    Vector2 worldPixels = GetScreenToWorld2D(screenPos, camera);
+Vec2 EditorCamera::ScreenToWorldMeters(Vec2 screenPos) const {
+    Vector2 s = { screenPos.x, screenPos.y };
+    Vector2 worldPixels = GetScreenToWorld2D(s, camera);
     return Vec2(worldPixels.x * Config::PixelToMeter, worldPixels.y * Config::PixelToMeter);
 }
 
-Vector2 EditorCamera::WorldToScreenPixels(Vec2 worldPos) const {
+Vec2 EditorCamera::WorldToScreenPixels(Vec2 worldPos) const {
     Vector2 worldPixels = { worldPos.x * Config::MeterToPixel, worldPos.y * Config::MeterToPixel };
-    return GetWorldToScreen2D(worldPixels, camera);
+    Vector2 screenPixels = GetWorldToScreen2D(worldPixels, camera);
+    return Vec2(screenPixels.x, screenPixels.y);
 }

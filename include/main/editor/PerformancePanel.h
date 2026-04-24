@@ -9,6 +9,7 @@ class PerformancePanel : public Panel {
 public:
     PerformancePanel(EditorCamera& camera, InputHandler& input);
     void OnImGui(World& world) override;
+    const char* GetName() const override { return "Performance & Viewport"; }
 
 private:
     EditorCamera& camera;

@@ -20,6 +20,7 @@ int main() {
     SetTargetFPS(Config::targetFPS);    
 
     rlImGuiSetup(true);
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     World world;
     InputHandler input;
@@ -35,18 +36,10 @@ int main() {
     while (!WindowShouldClose()) {
         input.Update(world, camera, EditorState::Get().GetActiveScenePath(), screenWidth, screenHeight, dt);
         
-        GizmoUpdate(camera);
-
         world.Step(dt);
 
         BeginDrawing();
-            ClearBackground(GRAY);
-
-            camera.Begin();
-                Render(world, camera); 
-            camera.End();
-            
-            GizmoRender(camera);
+            ClearBackground(DARKGRAY);
 
             editor.Update(world);
             

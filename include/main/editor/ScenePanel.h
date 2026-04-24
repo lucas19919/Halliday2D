@@ -8,6 +8,7 @@ class ScenePanel : public Panel {
 public:
     ScenePanel(int screenWidth, int screenHeight);
     void OnImGui(World& world) override;
+    const char* GetName() const override { return "Scene Manager"; }
 
 private:
     int screenWidth;

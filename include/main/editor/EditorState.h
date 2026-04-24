@@ -30,11 +30,11 @@ public:
     void SetActiveScenePath(const std::string& path) { currentScenePath = path; }
     const std::string& GetActiveScenePath() const { return currentScenePath; }
 
-    void SetViewportMousePos(Vector2 pos) { viewportMousePos = pos; }
-    Vector2 GetViewportMousePos() const { return viewportMousePos; }
+    void SetViewportMousePos(Vec2 pos) { viewportMousePos = pos; }
+    Vec2 GetViewportMousePos() const { return viewportMousePos; }
 
-    void SetViewportSize(Vector2 size) { viewportSize = size; }
-    Vector2 GetViewportSize() const { return viewportSize; }
+    void SetViewportSize(Vec2 size) { viewportSize = size; }
+    Vec2 GetViewportSize() const { return viewportSize; }
 
     void SetViewportHovered(bool hovered) { isViewportHovered = hovered; }
     bool IsViewportHovered() const { return isViewportHovered; }
@@ -42,7 +42,7 @@ public:
     void SetViewportFocused(bool focused) { isViewportFocused = focused; }
     bool IsViewportFocused() const { return isViewportFocused; }
 
-private:
+    private:
     EditorState() : selectedObject(nullptr), activeGizmoType(GizmoType::TRANSLATE), hoveredAxis(GizmoAxis::NONE), activeAxis(GizmoAxis::NONE), currentScenePath("../assets/examples/PrattTruss.json"), viewportMousePos{0,0}, viewportSize{0,0}, isViewportHovered(false), isViewportFocused(false) {}
     GameObject* selectedObject;
     GizmoType activeGizmoType;
@@ -50,8 +50,8 @@ private:
     GizmoAxis activeAxis;
     std::string currentScenePath;
 
-    Vector2 viewportMousePos;
-    Vector2 viewportSize;
+    Vec2 viewportMousePos;
+    Vec2 viewportSize;
     bool isViewportHovered;
     bool isViewportFocused;
-};
+    };

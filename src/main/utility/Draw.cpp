@@ -202,7 +202,8 @@ void GizmoRender(const EditorCamera& camera)
     GameObject* selected = state.GetSelected();
     if (!selected) return;
 
-    Vector2 origin = camera.WorldToScreenPixels(selected->transform.position);
+    Vec2 origin = camera.WorldToScreenPixels(selected->transform.position);
+    Vector2 originV = { origin.x, origin.y };
     GizmoType type = state.GetGizmoType();
     GizmoAxis hovered = state.GetHoveredAxis();
     GizmoAxis active = state.GetActiveAxis();
@@ -219,20 +220,20 @@ void GizmoRender(const EditorCamera& camera)
             Color colorBoth = (hovered == GizmoAxis::BOTH || active == GizmoAxis::BOTH) ? YELLOW : BLUE;
 
             // X Axis
-            DrawLineEx(origin, { origin.x + handleLength, origin.y }, thickness, colorX);
-            DrawTriangle({ origin.x + handleLength + 15, origin.y }, 
-                        { origin.x + handleLength, origin.y - 7 }, 
-                        { origin.x + handleLength, origin.y + 7 }, colorX);
+            DrawLineEx(originV, { originV.x + handleLength, originV.y }, thickness, colorX);
+            DrawTriangle({ originV.x + handleLength + 15, originV.y }, 
+                        { originV.x + handleLength, originV.y - 7 }, 
+                        { originV.x + handleLength, originV.y + 7 }, colorX);
 
             // Y Axis
-            DrawLineEx(origin, { origin.x, origin.y + handleLength }, thickness, colorY);
-            DrawTriangle({ origin.x, origin.y + handleLength + 15 }, 
-                        { origin.x + 7, origin.y + handleLength }, 
-                        { origin.x - 7, origin.y + handleLength }, colorY);
+            DrawLineEx(originV, { originV.x, originV.y + handleLength }, thickness, colorY);
+            DrawTriangle({ originV.x, originV.y + handleLength + 15 }, 
+                        { originV.x + 7, originV.y + handleLength }, 
+                        { originV.x - 7, originV.y + handleLength }, colorY);
 
             // Center handle
-            DrawRectangleV({ origin.x - 8, origin.y - 8 }, { 16, 16 }, colorBoth);
-            DrawRectangleLinesEx({ origin.x - 8, origin.y - 8, 16, 16 }, 1.0f, BLACK);
+            DrawRectangleV({ originV.x - 8, originV.y - 8 }, { 16, 16 }, colorBoth);
+            DrawRectangleLinesEx({ originV.x - 8, originV.y - 8, 16, 16 }, 1.0f, BLACK);
 
             break;
         }
@@ -240,13 +241,14 @@ void GizmoRender(const EditorCamera& camera)
         {
             float radius = 80.0f;
             Color colorBoth = (hovered == GizmoAxis::BOTH || active == GizmoAxis::BOTH) ? YELLOW : BLUE;
-            DrawCircleLinesV(origin, radius, colorBoth);
-            DrawCircleV(origin, 5.0f, colorBoth);
+            DrawCircleLinesV(originV, radius, colorBoth);
+            DrawCircleV(originV, 5.0f, colorBoth);
             
             // Draw a line to current mouse if active
             if (active == GizmoAxis::BOTH)
             {
-                DrawLineV(origin, GetMousePosition(), LIGHTGRAY);
+                Vector2 m = GetMousePosition();
+                DrawLineV(originV, m, LIGHTGRAY);
             }
 
             break;
@@ -263,9 +265,9 @@ void GizmoRender(const EditorCamera& camera)
 
 void GizmoUpdate(const EditorCamera& camera)
 {
-    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse) return;
-
     EditorState& state = EditorState::Get();
+    // Use viewport-relative mouse pos
+    Vec2 mousePos = state.GetViewportMousePos();
     GameObject* selected = state.GetSelected();
     if (!selected)
     {
@@ -273,8 +275,7 @@ void GizmoUpdate(const EditorCamera& camera)
         return;
     }
 
-    Vector2 mousePos = GetMousePosition();
-    Vector2 origin = camera.WorldToScreenPixels(selected->transform.position);
+    Vec2 origin = camera.WorldToScreenPixels(selected->transform.position);
     float handleLength = 100.0f;
 
     GizmoType type = state.GetGizmoType();
@@ -283,21 +284,25 @@ void GizmoUpdate(const EditorCamera& camera)
     GizmoAxis hovered = GizmoAxis::NONE;
     if (type == GizmoType::TRANSLATE)
     {
+        Vector2 mPos = { mousePos.x, mousePos.y };
+        Vector2 oPos = { origin.x, origin.y };
         // Forgiving hitboxes: using slightly larger areas and including the tips
         // Center handle
-        if (CheckCollisionPointRec(mousePos, { origin.x - 15, origin.y - 15, 30, 30 }))
+        if (CheckCollisionPointRec(mPos, { oPos.x - 15, oPos.y - 15, 30, 30 }))
             hovered = GizmoAxis::BOTH;
         // X Axis (includes the triangle tip)
-        else if (CheckCollisionPointRec(mousePos, { origin.x, origin.y - 15, handleLength + 40, 30 }))
+        else if (CheckCollisionPointRec(mPos, { oPos.x, oPos.y - 15, handleLength + 40, 30 }))
             hovered = GizmoAxis::X;
         // Y Axis (includes the triangle tip)
-        else if (CheckCollisionPointRec(mousePos, { origin.x - 15, origin.y, 30, handleLength + 40 }))
+        else if (CheckCollisionPointRec(mPos, { oPos.x - 15, oPos.y, 30, handleLength + 40 }))
             hovered = GizmoAxis::Y;
     }
     else if (type == GizmoType::ROTATE)
     {
+        Vector2 mPos = { mousePos.x, mousePos.y };
+        Vector2 oPos = { origin.x, origin.y };
         float radius = 80.0f;
-        float dist = Vector2Distance(mousePos, origin);
+        float dist = Vector2Distance(mPos, oPos);
         if (std::abs(dist - radius) < 10.0f || dist < 10.0f)
             hovered = GizmoAxis::BOTH;
     }
@@ -317,7 +322,8 @@ void GizmoUpdate(const EditorCamera& camera)
 
     if (state.GetActiveAxis() != GizmoAxis::NONE && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {
-        Vector2 delta = GetMouseDelta();
+        Vector2 d = GetMouseDelta();
+        Vec2 delta(d.x, d.y);
         if (delta.x != 0 || delta.y != 0)
         {
             float zoom = camera.GetRaylibCamera().zoom;
@@ -337,8 +343,11 @@ void GizmoUpdate(const EditorCamera& camera)
             }
             else if (type == GizmoType::ROTATE)
             {
-                Vector2 currentDir = Vector2Subtract(mousePos, origin);
-                Vector2 prevDir = Vector2Subtract(Vector2Subtract(mousePos, delta), origin);
+                Vector2 mPos = { mousePos.x, mousePos.y };
+                Vector2 oPos = { origin.x, origin.y };
+                Vector2 currentDir = Vector2Subtract(mPos, oPos);
+                Vector2 prevPos = { mousePos.x - delta.x, mousePos.y - delta.y };
+                Vector2 prevDir = Vector2Subtract(prevPos, oPos);
                 
                 if (Vector2Length(currentDir) > 0.1f && Vector2Length(prevDir) > 0.1f)
                 {

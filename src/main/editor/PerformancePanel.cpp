@@ -6,11 +6,10 @@ namespace Editor {
     PerformancePanel::PerformancePanel(EditorCamera& camera, InputHandler& input) 
         : camera(camera), input(input) {}
 
-    void PerformancePanel::OnImGui(World& world) 
-    {
+    void PerformancePanel::OnImGui(World& world) {
         if (!isOpen) return;
 
-        ImGui::Begin("Performance & Viewport", &isOpen);
+        ImGui::Begin(GetName(), &isOpen);
         
         ImGui::Text("Viewport Info:");
         ImGui::Text("Zoom: %.2fx", camera.GetRaylibCamera().zoom);
