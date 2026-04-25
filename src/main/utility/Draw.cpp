@@ -22,6 +22,7 @@ void Render(World& world, const EditorCamera& camera)
 {
     GameObject* selected = EditorState::Get().GetSelected();
     std::string selectedGroup = EditorState::Get().GetSelectedGroup();
+    const auto& theme = EditorState::Get().GetThemeColors();
     float zoom = camera.GetRaylibCamera().zoom;
     float thickness = 4.0f / zoom; 
 
@@ -46,10 +47,10 @@ void Render(World& world, const EditorCamera& camera)
         float endY = std::ceil(halfH / cellSize) * cellSize;
 
         for (float x = startX; x <= endX; x += cellSize) {
-            DrawLineEx(ToScreen(Vec2(x, -halfH)), ToScreen(Vec2(x, halfH)), lineThickness, Fade(DARKGRAY, 0.4f));
+            DrawLineEx(ToScreen(Vec2(x, -halfH)), ToScreen(Vec2(x, halfH)), lineThickness, theme.gridColor);
         }
         for (float y = startY; y <= endY; y += cellSize) {
-            DrawLineEx(ToScreen(Vec2(-halfW, y)), ToScreen(Vec2(halfW, y)), lineThickness, Fade(DARKGRAY, 0.4f));
+            DrawLineEx(ToScreen(Vec2(-halfW, y)), ToScreen(Vec2(halfW, y)), lineThickness, theme.gridColor);
         }
 
         if (Config::spatialHashMode == Config::SpatialHashMode::ActiveCells) {
@@ -82,7 +83,7 @@ void Render(World& world, const EditorCamera& camera)
         screenWorldSize.x + borderThickness, 
         screenWorldSize.y + borderThickness 
     };
-    DrawRectangleLinesEx(borderRect, borderThickness, DARKGRAY);
+    DrawRectangleLinesEx(borderRect, borderThickness, theme.borderColor);
 
     for (const auto& objPtr : world.GetGameObjects())
     {
@@ -95,7 +96,7 @@ void Render(World& world, const EditorCamera& camera)
         // highlight color if in selected group
         Color renderColor = shape.color;
         if (!selectedGroup.empty() && obj->GetGroupName() == selectedGroup) {
-            renderColor = ORANGE;
+            renderColor = theme.selectionColor;
         }
 
         switch (shape.form)
@@ -240,13 +241,13 @@ void Render(World& world, const EditorCamera& camera)
         if (selected->c->GetType() == ColliderType::CIRCLE)
         {
             float radius = ToScreen(static_cast<CircleCollider*>(selected->c)->radius);
-            DrawRing(ToScreen(selected->transform.position), radius, radius + thickness, 0.0f, 360.0f, 36, ORANGE);
+            DrawRing(ToScreen(selected->transform.position), radius, radius + thickness, 0.0f, 360.0f, 36, theme.selectionColor);
         }
         else
         {
             const Array<20>& vertices = selected->c->GetVertices();
             for (size_t i = 0; i < vertices.Size(); i++)
-                DrawLineEx(ToScreen(vertices[i]), ToScreen(vertices[(i + 1) % vertices.Size()]), thickness, ORANGE);
+                DrawLineEx(ToScreen(vertices[i]), ToScreen(vertices[(i + 1) % vertices.Size()]), thickness, theme.selectionColor);
         }
     }
 }
@@ -262,8 +263,21 @@ void GizmoRender(World& world, const EditorCamera& camera)
         worldPos = selected->transform.position;
     } else if (!selectedGroup.empty()) {
         GeneratorDef* gen = world.GetGenerator(selectedGroup);
-        if (!gen) return;
-        worldPos = Vec2(gen->startX, gen->startY);
+        if (gen) {
+            worldPos = Vec2(gen->startX, gen->startY);
+        } else {
+            // Calculate center of group
+            Vec2 center(0, 0);
+            int count = 0;
+            for (const auto& obj : world.GetGameObjects()) {
+                if (obj->GetGroupName() == selectedGroup) {
+                    center += obj->transform.position;
+                    count++;
+                }
+            }
+            if (count > 0) worldPos = center * (1.0f / count);
+            else return;
+        }
     } else {
         return;
     }
@@ -319,8 +333,25 @@ void GizmoUpdate(World& world, const EditorCamera& camera)
         worldPos = selected->transform.position;
     } else if (!selectedGroup.empty()) {
         genDef = world.GetGenerator(selectedGroup);
-        if (!genDef) return;
-        worldPos = Vec2(genDef->startX, genDef->startY);
+        if (genDef) {
+            worldPos = Vec2(genDef->startX, genDef->startY);
+        } else {
+            // Calculate center of group for gizmo placement
+            Vec2 center(0, 0);
+            int count = 0;
+            for (const auto& obj : world.GetGameObjects()) {
+                if (obj->GetGroupName() == selectedGroup) {
+                    center += obj->transform.position;
+                    count++;
+                }
+            }
+            if (count > 0) worldPos = center * (1.0f / count);
+            else {
+                state.SetSelectedGroup("");
+                state.SetActiveAxis(GizmoAxis::NONE);
+                return;
+            }
+        }
     } else {
         state.SetActiveAxis(GizmoAxis::NONE);
         return;
@@ -366,11 +397,22 @@ void GizmoUpdate(World& world, const EditorCamera& camera)
                     if (state.GetActiveAxis() == GizmoAxis::X) selected->transform.SetPosition(selected->transform.position + Vec2(worldDelta.x, 0));
                     else if (state.GetActiveAxis() == GizmoAxis::Y) selected->transform.SetPosition(selected->transform.position + Vec2(0, worldDelta.y));
                     else if (state.GetActiveAxis() == GizmoAxis::BOTH) selected->transform.SetPosition(selected->transform.position + worldDelta);
-                } else if (genDef) {
-                    if (state.GetActiveAxis() == GizmoAxis::X) genDef->startX += worldDelta.x;
-                    else if (state.GetActiveAxis() == GizmoAxis::Y) genDef->startY += worldDelta.y;
-                    else if (state.GetActiveAxis() == GizmoAxis::BOTH) { genDef->startX += worldDelta.x; genDef->startY += worldDelta.y; }
-                    world.RegenerateGenerator(selectedGroup);
+                } else if (!selectedGroup.empty()) {
+                    if (genDef) {
+                        if (state.GetActiveAxis() == GizmoAxis::X) genDef->startX += worldDelta.x;
+                        else if (state.GetActiveAxis() == GizmoAxis::Y) genDef->startY += worldDelta.y;
+                        else if (state.GetActiveAxis() == GizmoAxis::BOTH) { genDef->startX += worldDelta.x; genDef->startY += worldDelta.y; }
+                        world.RegenerateGenerator(selectedGroup);
+                    } else {
+                        // Regular group movement
+                        for (auto& obj : world.GetGameObjects()) {
+                            if (obj->GetGroupName() == selectedGroup) {
+                                if (state.GetActiveAxis() == GizmoAxis::X) obj->transform.SetPosition(obj->transform.position + Vec2(worldDelta.x, 0));
+                                else if (state.GetActiveAxis() == GizmoAxis::Y) obj->transform.SetPosition(obj->transform.position + Vec2(0, worldDelta.y));
+                                else if (state.GetActiveAxis() == GizmoAxis::BOTH) obj->transform.SetPosition(obj->transform.position + worldDelta);
+                            }
+                        }
+                    }
                 }
             }
             else if (type == GizmoType::ROTATE && selected)

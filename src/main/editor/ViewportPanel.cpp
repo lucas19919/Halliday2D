@@ -45,7 +45,7 @@ void ViewportPanel::OnImGui(World& world) {
 
     // scene
     BeginTextureMode(target);
-        ClearBackground(GRAY);
+        ClearBackground(EditorState::Get().GetThemeColors().viewportBg);
         camera.Begin();
             Render(world, camera);
         camera.End();

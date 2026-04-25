@@ -15,7 +15,7 @@ class LoadScene
         static GameObject* LoadObject(const nlohmann::json& item, World& world);
         static std::unique_ptr<GameObject> LoadObjectOrphan(const nlohmann::json& item, World& world);
         
-        static void LoadCollection(const nlohmann::json& data, World& world, Vec2 offset = Vec2(0,0));
+        static void LoadCollection(const nlohmann::json& data, World& world, Vec2 offset = Vec2(0,0), const std::string& groupName = "");
 
     private:
         static void LoadConstraints(const nlohmann::json& constraints, World& world, const std::unordered_map<int, GameObject*>& idMap);

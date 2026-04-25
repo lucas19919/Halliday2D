@@ -1,4 +1,5 @@
 #pragma once
+#include "raylib.h"
 #include "main/GameObject.h"
 #include "math/Vec2.h"
 #include <external/nlohmann/json.hpp>
@@ -51,8 +52,19 @@ public:
     bool HasInitialState() const { return !initialEditorState.is_null(); }
     void ClearInitialState() { initialEditorState = nlohmann::json(); }
 
+    struct ThemeColors {
+        Color viewportBg;
+        Color gridColor;
+        Color borderColor;
+        Color selectionColor;
+    };
+    void SetThemeColors(ThemeColors colors) { themeColors = colors; }
+    const ThemeColors& GetThemeColors() const { return themeColors; }
+
     private:
-    EditorState() : selectedObject(nullptr), selectedGroup(""), activeGizmoType(GizmoType::TRANSLATE), hoveredAxis(GizmoAxis::NONE), activeAxis(GizmoAxis::NONE), currentScenePath("../assets/examples/PrattTruss.json"), viewportMousePos{0,0}, viewportSize{0,0}, isViewportHovered(false), isViewportFocused(false) {}
+    EditorState() : selectedObject(nullptr), selectedGroup(""), activeGizmoType(GizmoType::TRANSLATE), hoveredAxis(GizmoAxis::NONE), activeAxis(GizmoAxis::NONE), currentScenePath("../assets/examples/PrattTruss.json"), viewportMousePos{0,0}, viewportSize{0,0}, isViewportHovered(false), isViewportFocused(false) {
+        themeColors = { WHITE, {200, 200, 200, 100}, DARKGRAY, ORANGE };
+    }
     GameObject* selectedObject;
     std::string selectedGroup;
     GizmoType activeGizmoType;
@@ -66,4 +78,5 @@ public:
     bool isViewportFocused;
 
     nlohmann::json initialEditorState;
+    ThemeColors themeColors;
     };

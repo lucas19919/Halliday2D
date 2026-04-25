@@ -3,8 +3,8 @@
 namespace Editor {
 
 enum class EditorTheme {
-    Dark,
-    Light,
+    ModernDark,
+    ModernLight,
     Retro
 };
 

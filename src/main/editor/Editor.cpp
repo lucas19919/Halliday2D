@@ -26,7 +26,7 @@ Editor::Editor(World& world, EditorCamera& camera, InputHandler& input) {
     panels.push_back(std::make_unique<DebugPanel>());
     panels.push_back(std::make_unique<ScenePanel>(Config::screenWidth, Config::screenHeight));
 
-    ThemeManager::ApplyTheme(EditorTheme::Retro);
+    ThemeManager::ApplyTheme(EditorTheme::ModernDark);
 }
 
 Editor::~Editor() {
@@ -130,9 +130,9 @@ void Editor::Update(World& world) {
         }
         if (ImGui::BeginMenu("Theme"))
         {
-            if (ImGui::MenuItem("Retro")) ThemeManager::ApplyTheme(EditorTheme::Retro);
-            if (ImGui::MenuItem("Dark"))  ThemeManager::ApplyTheme(EditorTheme::Dark);
-            if (ImGui::MenuItem("Light")) ThemeManager::ApplyTheme(EditorTheme::Light);
+            if (ImGui::MenuItem("Modern Dark")) ThemeManager::ApplyTheme(EditorTheme::ModernDark);
+            if (ImGui::MenuItem("Modern Light")) ThemeManager::ApplyTheme(EditorTheme::ModernLight);
+            if (ImGui::MenuItem("Retro"))  ThemeManager::ApplyTheme(EditorTheme::Retro);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Window"))

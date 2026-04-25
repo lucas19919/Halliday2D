@@ -44,7 +44,7 @@ int main() {
         world.Step(dt);
 
         BeginDrawing();
-            ClearBackground(DARKGRAY);
+            ClearBackground(EditorState::Get().GetThemeColors().viewportBg);
 
             editor.Update(world);
         

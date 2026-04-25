@@ -94,6 +94,10 @@ void LoadScene::LoadFromJSON(const json& sceneData, World& world, int screenWidt
                 {
                     obj->SetName(item["name"].get<std::string>());
                 }
+                if (item.contains("groupName"))
+                {
+                    obj->SetGroupName(item["groupName"].get<std::string>());
+                }
             }
         }
     }
@@ -205,7 +209,7 @@ void LoadScene::Regenerate(World& world, GeneratorDef& def, const std::string& c
     world.UpdateCaches();
 }
 
-void LoadScene::LoadCollection(const nlohmann::json& data, World& world, Vec2 offset)
+void LoadScene::LoadCollection(const nlohmann::json& data, World& world, Vec2 offset, const std::string& groupName)
 {
     std::unordered_map<int, GameObject*> idMap;
 
@@ -217,6 +221,8 @@ void LoadScene::LoadCollection(const nlohmann::json& data, World& world, Vec2 of
             if (obj)
             {
                 obj->transform.SetPosition(obj->transform.position + offset);
+                if (!groupName.empty()) obj->SetGroupName(groupName);
+
                 if (item.contains("id"))
                 {
                     // We generate a NEW ID for the world, but we need the mapping for internal constraints

@@ -77,10 +77,37 @@ void HierarchyPanel::OnImGui(World& world) {
         }
 
         if (ImGui::BeginPopupContextItem()) {
+            static char renameBuf[64];
+            if (ImGui::Button("Rename Group")) {
+                strncpy(renameBuf, pair.first.c_str(), 63);
+                ImGui::OpenPopup("RenameGroupPopup");
+            }
+
+            if (ImGui::BeginPopup("RenameGroupPopup")) {
+                ImGui::InputText("##newname", renameBuf, 63);
+                if (ImGui::Button("Apply")) {
+                    std::string newName = renameBuf;
+                    if (!newName.empty()) {
+                        world.RenameGenerator(pair.first, newName);
+                        for (GameObject* obj : pair.second) {
+                            obj->SetGroupName(newName);
+                        }
+                        EditorState::Get().SetSelectedGroup(newName);
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+
             if (ImGui::MenuItem("Save as Prefab")) {
                 std::string path = "../assets/prefabs/" + pair.first + ".json";
                 SaveScene::SaveCollection(path, world, pair.first);
             }
+
+            if (ImGui::MenuItem("Delete Group")) {
+                world.RemoveGroup(pair.first);
+            }
+
             ImGui::EndPopup();
         }
 
@@ -150,11 +177,27 @@ void HierarchyPanel::OnImGui(World& world) {
                                 if (file.is_open()) {
                                     nlohmann::json data;
                                     file >> data;
+
+                                    std::string uniqueGroupName = name;
+                                    int counter = 1;
+                                    bool exists = false;
+                                    for (const auto& obj : world.GetGameObjects()) if (obj->GetGroupName() == uniqueGroupName) { exists = true; break; }
+                                    while (exists) {
+                                        uniqueGroupName = name + "_" + std::to_string(counter++);
+                                        exists = false;
+                                        for (const auto& obj : world.GetGameObjects()) if (obj->GetGroupName() == uniqueGroupName) { exists = true; break; }
+                                    }
+
                                     if (data.contains("objects")) {
-                                        LoadScene::LoadCollection(data, world, Vec2(0,0));
+                                        LoadScene::LoadCollection(data, world, Vec2(0,0), uniqueGroupName);
+                                        EditorState::Get().SetSelectedGroup(uniqueGroupName);
                                     } else {
                                         GameObject* obj = LoadScene::LoadObject(data, world);
-                                        if (obj) obj->transform.SetPosition(Vec2(0,0));
+                                        if (obj) {
+                                            obj->transform.SetPosition(Vec2(0,0));
+                                            obj->SetGroupName(uniqueGroupName);
+                                            EditorState::Get().SetSelectedGroup(uniqueGroupName);
+                                        }
                                     }
                                 }
                             }
