@@ -34,32 +34,17 @@ Editor::~Editor() {
 void Editor::Update(World& world) {
     rlImGuiBegin();
 
-    // shortcuts
-    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
-        if (!EditorState::Get().GetActiveScenePath().empty()) {
-            SaveScene::Save(EditorState::Get().GetActiveScenePath(), world);
-        } else {
-            std::string path = ShowFileDialog(true);
-            if (!path.empty()) {
-                EditorState::Get().SetActiveScenePath(path);
-                SaveScene::Save(path, world);
-            }
-        }
-    }
-
-    // root dockspace
-    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
-
     static bool resetLayout = false;
     static bool firstFrame = true;
+    ImGuiID dockspace_id = ImGui::GetID("EditorDockSpace");
 
-    if ((firstFrame || resetLayout) && dockspace_id != 0) {
+    if ((firstFrame || resetLayout)) {
         firstFrame = false;
         resetLayout = false;
 
         ImGui::DockBuilderRemoveNode(dockspace_id);
         ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-        ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
+        ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
         ImGuiID dock_id_main = dockspace_id;
         ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Left, 0.20f, nullptr, &dock_id_main);
@@ -79,10 +64,38 @@ void Editor::Update(World& world) {
         ImGui::DockBuilderFinish(dockspace_id);
     }
 
+    // root dockspace
+    ImGui::DockSpaceOverViewport(dockspace_id, ImGui::GetMainViewport());
+
+    // shortcuts
+    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
+        if (!EditorState::Get().GetActiveScenePath().empty()) {
+            SaveScene::Save(EditorState::Get().GetActiveScenePath(), world);
+        } else {
+            std::string path = ShowFileDialog(true);
+            if (!path.empty()) {
+                EditorState::Get().SetActiveScenePath(path);
+                SaveScene::Save(path, world);
+            }
+        }
+    }
+    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_N)) {
+        LoadScene::Load("", world, Config::screenWidth, Config::screenHeight);
+        EditorState::Get().SetSelected(nullptr);
+        EditorState::Get().SetActiveScenePath("");
+        world.isPaused = true;
+    }
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
+            if (ImGui::MenuItem("New", "Ctrl+N")) {
+                LoadScene::Load("", world, Config::screenWidth, Config::screenHeight);
+                EditorState::Get().SetSelected(nullptr);
+                EditorState::Get().SetActiveScenePath("");
+                world.isPaused = true;
+            }
             if (ImGui::MenuItem("Load")) {
                 std::string path = ShowFileDialog(false);
                 if (!path.empty()) {
@@ -127,6 +140,28 @@ void Editor::Update(World& world) {
             ImGui::Separator();
             for (auto& panel : panels)
                 ImGui::MenuItem(panel->GetName(), nullptr, &panel->isOpen);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("World"))
+        {
+            ImGui::TextDisabled("Physics World Settings");
+            ImGui::Separator();
+            
+            bool changed = false;
+            changed |= ImGui::DragInt("Screen Width", &Config::screenWidth, 1, 100, 4000);
+            changed |= ImGui::DragInt("Screen Height", &Config::screenHeight, 1, 100, 4000);
+            
+            if (changed) {
+                world.SetWorldSize(Vec2(Config::screenWidth * Config::PixelToMeter, Config::screenHeight * Config::PixelToMeter));
+            }
+
+            ImGui::Separator();
+            Vec2 size = world.GetWorldSize();
+            if (ImGui::DragFloat2("World Size (m)", &size.x, 0.1f, 1.0f, 1000.0f)) {
+                world.SetWorldSize(size);
+                Config::screenWidth = (int)(size.x * Config::MeterToPixel);
+                Config::screenHeight = (int)(size.y * Config::MeterToPixel);
+            }
             ImGui::EndMenu();
         }
 

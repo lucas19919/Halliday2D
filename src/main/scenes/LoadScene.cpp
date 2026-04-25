@@ -53,6 +53,10 @@ void LoadScene::Load(const std::string& filePath, World& world, int screenWidth,
     Vec2 worldSize = sceneData.contains("worldSize") ? ParseVec2(sceneData["worldSize"]) : Vec2(screenWidth * Config::PixelToMeter, screenHeight * Config::PixelToMeter);
     world.SetWorldSize(worldSize);
 
+    // Update global config to match the loaded world size
+    Config::screenWidth = (int)(worldSize.x * Config::MeterToPixel);
+    Config::screenHeight = (int)(worldSize.y * Config::MeterToPixel);
+
     if (sceneData.value("useWalls", false))
     {
         float sw = worldSize.x;

@@ -51,6 +51,7 @@ void ViewportPanel::OnImGui(World& world) {
         camera.End();
         GizmoRender(camera);
         GizmoUpdate(camera);
+        if (Config::drawFPS) DrawFPS(10, 10);
     EndTextureMode();
 
     // blit

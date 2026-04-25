@@ -20,6 +20,10 @@ int main() {
     SetWindowState(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
     SetTargetFPS(Config::targetFPS);    
 
+    Image icon = LoadImage("icon.ico"); 
+    SetWindowIcon(icon);
+    UnloadImage(icon);
+
     rlImGuiSetup(true);
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -30,12 +34,12 @@ int main() {
 
     LoadScene::Load(EditorState::Get().GetActiveScenePath(), world, screenWidth, screenHeight);
 
-    //draw fps?
-    bool FPS = Config::drawFPS;
-
     const float dt = 1.0f / 60.0f;
     while (!WindowShouldClose()) {
-        input.Update(world, camera, EditorState::Get().GetActiveScenePath(), screenWidth, screenHeight, dt);
+        int currentScreenWidth = GetScreenWidth();
+        int currentScreenHeight = GetScreenHeight();
+        
+        input.Update(world, camera, EditorState::Get().GetActiveScenePath(), currentScreenWidth, currentScreenHeight, dt);
         
         world.Step(dt);
 

@@ -88,6 +88,10 @@ void ThemeManager::ApplyTheme(EditorTheme theme) {
             colors[ImGuiCol_TabUnfocused]           = ImVec4(0.65f, 0.65f, 0.65f, 1.00f);
             colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
             colors[ImGuiCol_MenuBarBg]              = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
+            colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
+            colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
+            colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+            colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
             style.WindowRounding = 0.0f;
             style.FrameRounding = 0.0f;
             style.ScrollbarRounding = 0.0f;

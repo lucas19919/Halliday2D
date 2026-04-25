@@ -24,6 +24,7 @@ void DebugPanel::OnImGui(World& world) {
         ImGui::SliderInt("Sub-Ticks", &Config::pipelineSubTicks, 1, 32);
         ImGui::SliderInt("Impulse Iterations", &Config::impulseIterations, 1, 50);
         ImGui::SliderInt("Position Iterations", &Config::positionIterations, 1, 20);
+        ImGui::InputFloat("Spatial Cellsize", &Config::spatialHashCellSize, 1.0f, 100.0f);
         ImGui::Checkbox("Warm Starting", &Config::warmStart);
     }
 

@@ -41,6 +41,8 @@ void SaveScene::Save(const std::string& filePath, World& world)
     json scene;
     scene["name"] = "Saved Scene";
     scene["worldSize"] = Vec2ToJSON(world.GetWorldSize());
+    scene["screenWidth"] = Config::screenWidth;
+    scene["screenHeight"] = Config::screenHeight;
     
     json objects = json::array();
     for (const auto& objPtr : world.GetGameObjects())

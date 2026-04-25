@@ -8,7 +8,7 @@ struct Config
     static inline int screenHeight = 960;          
     static inline int targetFPS = 60;      
 
-    static inline bool drawFPS = true;
+    static inline bool drawFPS = false;
     static inline bool drawNormals = false;
     static inline bool drawContactPoints = false;
     static inline bool drawVelocity = false;

@@ -10,10 +10,7 @@ namespace Editor {
         if (!isOpen) return;
 
         ImGui::Begin(GetName(), &isOpen);
-        
-        if (Config::drawFPS) {
-            ImGui::Text("FPS: %d", GetFPS());
-        }
+        ImGui::Text("FPS: %d", GetFPS());
 
         ImGui::Text("Viewport Info:");
         ImGui::Text("Zoom: %.2fx", camera.GetRaylibCamera().zoom);
